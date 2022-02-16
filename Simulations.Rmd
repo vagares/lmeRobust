@@ -1,0 +1,12 @@
+---
+title: "Simulations"
+output: html_notebook
+---
+
+# Simulations subsection 1 
+
+```{r}
+plot(cars)
+```
+
+# Simulations subsection 2

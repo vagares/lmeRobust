@@ -1,0 +1,36 @@
+---
+title: "Example"
+output: html_notebook
+---
+
+# Data preparation from lme formula
+
+```{r}
+filepath="C:\\Users\\vagares\\Documents\\lmeRobust\\"
+source(paste(filepath,"lme_to_Robustlme.R",sep=""))
+#source("Robust_lme.r")
+load(paste(filepath,"data.rdata",sep=""))
+
+mc = lmeRob(Resis/100~Elec,data=Electrode,random=~1 | Subject)
+ltc=lme.to.Robustlme(mc)
+
+data_prepa = function(fixed, data, random,...){
+  mc=match.call()
+  ltc=lme.to.Robustlme(mc)
+  y <- ltc$yxz$y
+  xfit <- ltc$yxz$x
+  zfit <- ltc$yxz$z
+  return(list(y=y,xfit=xfit,zfit=zfit))
+}
+
+prep=data_prepa(Resis/100~Elec,data=Electrode,random=~1 | Subject)
+```
+
+# Example
+
+```{r}
+output=Roblme(prep$y,prep$xfit,prep$zfit,rho="t-biweight",r=0.25,arp=0.01,rhoMM=NULL,eps=1e-5,maxiter=100,eff=0.95,mu0=NULL,s0=NULL)
+
+output
+
+```
