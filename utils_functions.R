@@ -1,4 +1,6 @@
-
+################################################################################
+#Biweight and translated biweight functions
+################################################################################
 
 biweightrho=function(y,c0){
   # This is Tukey's biweight rho function
@@ -155,7 +157,8 @@ gint<-function(k,c,p)
   return(res)
 }
 
-
+################################################################################
+#Constant computation
 ################################################################################
 sigma1<-function(c,p)
   # Direct calls: gint
@@ -185,7 +188,9 @@ sigma1<-function(c,p)
   return(list(vec.mu=vec.mu,sig2=sig2))
 }
 
-
+################################################################################
+#Initial values
+################################################################################
 "rogkmiss" = function(data, c1 = 4.5, c2 = 3){
   #
   # variables declaration
