@@ -22,16 +22,6 @@ biweightrhotranslated=function(d,M,c0){
     ifelse(d>=M,1,0)*ifelse(d<=M+c0,1,0)*term2+
     ifelse(d>M+c0,1,0)*term3
 }
-biwt.rho2<- function(d,c,M){
-  hulp =M^2/2 -
-    (M^2*(M^4-5*M^2*c^2+15*c^4))/(30*c^4)+
-    d^2*(0.5+(M^4)/(2*c^4)-M^2/c^2) +
-    d^3*((4*M)/(3*c^2)-(4* M^3)/(3*c^4))+
-    d^4*((3*M^2)/(2*c^4)-1/(2*c^2))
-  -(4*M*d^5)/(5*c^4)+ 
-    d^6/(6*c^4)
-  if(d<M){rho=d^2/2}else{if(d>=M & (d<=(M+c))){rho=hulp}else{rho=M^2/2 + c*(5*c+16*M)/30}}
-}
 
 #############################################
 
@@ -86,7 +76,11 @@ biweightv=function(y,c0,b0){
 
 biweightvtranslated=function(d,M,c0,b0){
   # This is Rocke's biweight weight function v(s)=u(s)s^2-rho(s)+b0
-  biweightu2translated(d,M,c0)-biweightrhotranslated(d,M,c0)+b0}
+  biweightu2translated(d,M,c0)-biweightrhotranslated(d,M,c0)+b0
+}
+
+############################################################################
+############################################################################
 
 Tbsc <- function(bdp,p,maxit = 1e3,eps = 1e-8,diff = 1e6)
 {

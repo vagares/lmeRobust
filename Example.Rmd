@@ -2,35 +2,1079 @@
 title: "Example"
 output: html_notebook
 ---
-
-# Data preparation from lme formula
-
 ```{r}
-filepath="C:\\Users\\vagares\\Documents\\lmeRobust\\"
-source(paste(filepath,"lme_to_Robustlme.R",sep=""))
-#source("Robust_lme.r")
-load(paste(filepath,"data.rdata",sep=""))
-
-mc = lmeRob(Resis/100~Elec,data=Electrode,random=~1 | Subject)
-ltc=lme.to.Robustlme(mc)
-
-data_prepa = function(fixed, data, random,...){
-  mc=match.call()
-  ltc=lme.to.Robustlme(mc)
-  y <- ltc$yxz$y
-  xfit <- ltc$yxz$x
-  zfit <- ltc$yxz$z
-  return(list(y=y,xfit=xfit,zfit=zfit))
-}
-
-prep=data_prepa(Resis/100~Elec,data=Electrode,random=~1 | Subject)
+library(MASS) # needed to generate from multivariate normal
+#library(ks)
+library(robustbase)
+library(pracma)
+library(nlme)
+filepath = "C:\\Users\\vagares\\Documents\\lmerobust\\"
+source(paste(filepath,"biweight_functions.R",sep = ""))
+source(paste(filepath,"asympt_norm_constants.R",sep = ""))
+source(paste(filepath,"Robust_lme.R",sep = ""))
+data = load(paste(filepath,"data\\data.Rdata",sep = ""))
 ```
 
-# Example
+# Example. Electrode data.
+
+Data
 
 ```{r}
-output=Roblme(prep$y,prep$xfit,prep$zfit,rho="t-biweight",r=0.25,arp=0.01,rhoMM=NULL,eps=1e-5,maxiter=100,eff=0.95,mu0=NULL,s0=NULL)
+interaction.plot(Electrode$Elec,Electrode$Subject,Electrode$Resis,xlab = "Resistance",
+                 ylab = "Electrode Type",trace.label = "Subject")
 
-output
+resistance = read.csv("data\\resistance.csv", header = TRUE,sep = ";")
 
+#############################################################################
+# FIGURE 4.1 IN HERITIER
+#############################################################################
+ymax = max(resistance[,2:6])
+ymin = 0
+plot(1:5,resistance[1,2:6],type = "l",ylim = c(ymin,ymax),
+     xlab = "Electrode type",ylab = "Resistance",
+     xlim = c(1,6),xaxt = "n")
+for (i in 2:16){
+  lines(1:5,resistance[i,2:6],lty = i)
+}
+axis(1,at = 1:5,labels = c("E1","E2","E3","E4","E5"))
+legend("topright",legend = 1:16,lty = 1:16,title = "Subject",bty = "n",cex = 0.75)
+
+```
+
+ML and REML estimations
+
+```{r}
+options(contrasts = c("contr.sum","cont.poly"))
+resistanceML.lme = lme(fixed = Resis/100~Elec,
+                   data = Electrode,
+                   random = list(Subject = pdIdent(~1)),
+                   method = "ML")
+summary(resistanceML.lme)
+
+resistanceREML.lme = lme(fixed = Resis/100~Elec,
+                   data = Electrode,
+                   random = list(Subject = pdIdent(~1)),
+                   method = "REML")
+summary(resistanceREML.lme)
+```
+
+Data preparation
+
+```{r}
+n =  as.numeric(tail(levels(Electrode$Subject),n = 1))
+Ymat = matrix(0,n,5) 
+for(i in 1:n){
+  Ymat[i,]  = Electrode[Electrode$Subject  ==  i,1]/100}
+
+
+# SUM TO ZERO CONTRAST
+X  =  list()
+for(i in 1:n){
+  X[[i]]  =  cbind(rep(1,5),contr.sum(5))
+}
+# TREATMENT CONTRAST
+#X = cbind(rep(1,5),contr.treatment(5))
+k = 5
+
+Z1 = rep(1,5)
+Z2 = diag(rep(1,k))
+
+Z = list(Z1,Z2)
+```
+
+Robust estimations
+
+```{r}
+
+resistanceMLE.lme = Roblme(Ymat,X,Z,rho = "MLE",r = 0.5,arp = 0.01,rhoMM = NULL,eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+
+resistanceMLE.lme$fixedeffects
+resistanceMLE.lme$theta
+
+resistanceStbw.lme = Roblme(Ymat,X,Z,rho = "t-biweight",r = 0.5,arp = 0.01,rhoMM = NULL,eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+
+resistanceStbw.lme$fixedeffects
+resistanceStbw.lme$theta
+
+resistanceSbw.lme = Roblme(Ymat,X,Z,rho = "biweight",r = 0.5,arp = 0.01,rhoMM = NULL,eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+
+resistanceSbw.lme$fixedeffects
+resistanceSbw.lme$theta
+
+resistanceSbwMM.lme = Roblme(Ymat,X,Z,rho = "biweight",r = 0.5,arp = 0.01,rhoMM = "biweight",eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+
+resistanceSbwMM.lme$fixedeffects
+resistanceSbwMM.lme$theta
+
+```
+
+```{r}
+
+############################################################################################
+# RESISDUALS
+############################################################################################
+YMLEresistanceMat = matrix(0,nrow = n,ncol = k)
+YStbwresistanceMat = matrix(0,nrow = n,ncol = k)
+YSbwMMresistanceMat = matrix(0,nrow = n,ncol = k)
+
+for (i in 1:n){
+  YMLEresistanceMat[i,] = X[[i]]%*%resistanceMLE.lme$fixedeffects[,1]
+  YStbwresistanceMat[i,] = X[[i]]%*%resistanceStbw.lme$fixedeffects[,1]
+  YSbwMMresistanceMat[i,] = X[[i]]%*%resistanceSbwMM.lme$fixedeffects[,1]
+}
+
+resMLEresistance = Ymat-YMLEresistanceMat
+resStbwresistance = Ymat-YStbwresistanceMat
+resSbwMMresistance = Ymat-YSbwMMresistanceMat
+
+# MAHALANOBIS DISTANCES OF RESIDUALS
+a = 0.025
+
+MDerrorMLEresistance = numeric(n)
+MDerrorStbwresistance = numeric(n)
+MDerrorSbwMMresistance = numeric(n)
+
+L1 = Z1%*%t(Z1)
+L2 = Z2%*%t(Z2)
+
+VMLEresistance = resistanceStbw.lme$theta[1]*L1+resistanceStbw.lme$theta[2]*L2
+VStbwresistance = resistanceSbw.lme$theta[1]*L1+resistanceSbw.lme$theta[2]*L2
+VSbwMMresistance = resistanceSbwMM.lme$theta[1]*L1+resistanceSbwMM.lme$theta[2]*L2
+
+for (i in 1:n){
+  MDerrorMLEresistance[i] = mahalanobis(resMLEresistance[i,],center = FALSE,cov = VMLEresistance) # Note MD = d^2!
+  MDerrorStbwresistance[i] = mahalanobis(resStbwresistance[i,],center = FALSE,cov = VStbwresistance) # Note MD = d^2!
+  MDerrorSbwMMresistance[i] = mahalanobis(resSbwMMresistance[i,],center = FALSE,cov = VSbwMMresistance) # Note MD = d^2!
+}
+
+par(mfrow = c(2,2))
+plot(sqrt(MDerrorMLEresistance),sqrt(MDerrorStbwresistance),
+     xlab = "MD's of MLE residuals",
+     ylab = "MD's of Stbw residuals",
+     main = "Mahalanobis distances for resistance data")
+IDStbwresistance = (1:n)[MDerrorStbwresistance>qchisq(0.975,df = k)]
+
+points(sqrt(MDerrorMLEresistance)[IDStbwresistance],
+       sqrt(MDerrorStbwresistance)[IDStbwresistance],pch = 16,col = 2)
+text(sqrt(MDerrorMLEresistance)[IDStbwresistance],
+     sqrt(MDerrorStbwresistance)[IDStbwresistance],label = IDStbwresistance,pos = 2,col = 2)
+abline(h = sqrt(qchisq(0.975,df = k)),col = 2)
+abline(v = sqrt(qchisq(0.975,df = k)),col = 2)
+
+plot(sqrt(MDerrorMLEresistance),sqrt(MDerrorSbwMMresistance),
+     xlab = "MD's of MLE residuals",
+     ylab = "MD's of MM residuals",
+     main = "Mahalanobis distances for resistance data")
+IDSbwMMresistance = (1:n)[MDerrorSbwMMresistance>qchisq(0.975,df = k)]
+
+points(sqrt(MDerrorMLEresistance)[IDSbwMMresistance],
+       sqrt(MDerrorSbwMMresistance)[IDSbwMMresistance],pch = 16,col = 2)
+text(sqrt(MDerrorMLEresistance)[IDSbwMMresistance],
+     sqrt(MDerrorSbwMMresistance)[IDSbwMMresistance],label = IDSbwMMresistance,pos = 2,col = 2)
+abline(h = sqrt(qchisq(0.975,df = k)),col = 2)
+abline(v = sqrt(qchisq(0.975,df = k)),col = 2)
+
+plot(sqrt(MDerrorSbwMMresistance),sqrt(MDerrorStbwresistance),
+     xlab = "MD's of MM residuals",
+     ylab = "MD's of S-translated residuals",
+     main = "Mahalanobis distances for resistance data")
+abline(b = 1,a = 0)
+par(mfrow = c(1,1))
+
+# DATA REVISITED
+ymax = max(resistance[,2:6])
+ymin = 0
+plot(1:5,resistance[1,2:6],type = "l",ylim = c(ymin,ymax),
+     xlab = "Electrode type",ylab = "resistance",
+     main = "Skin resistance Data with identified outlying observations",
+     xlim = c(1,6),xaxt = "n")
+for (i in 2:16){
+  lines(1:5,resistance[i,2:6],lty = i)
+}
+axis(1,at = 1:5,labels = c("E1","E2","E3","E4","E5"))
+lines(1:5,resistance[15,2:6],lwd = 2,col = 2)
+lines(1:5,resistance[2,2:6],lwd = 2,col = 3)
+lines(1:5,resistance[1,2:6],lwd = 2,col = 4)
+lines(1:5,resistance[5,2:6],lwd = 2,col = 5)
+legend("topright",legend = 1:16,
+       lty = c(1,1,3,4,1,6:14,1,16),
+       lwd = c(2,2,1,1,2,1,1,1,1,1,1,1,1,1,2,1),
+       col = c(4,3,1,1,5,1,1,1,1,1,1,1,1,1,2,1),
+       title = "Subject",bty = "n")
+
+###############################################################
+# SIGNIFICANCE
+ymax = max(Ymat)
+YmatCleaned = Ymat[-c(2,15),]
+par(mfrow = c(1,2))
+boxplot(Ymat[,1],Ymat[,2],Ymat[,3],Ymat[,4],Ymat[,5],
+        ylim = c(0,ymax),
+        names = c("E1","E2","E3","E4","E5"),
+        xlab = "Electrode type",
+        ylab = "resistance",
+        main = "resistance data")
+abline(h = resistanceSbwMM.lme$fixedeffects[1,1])
+boxplot(YmatCleaned[,1],YmatCleaned[,2],YmatCleaned[,3],
+        YmatCleaned[,4],YmatCleaned[,5],
+        ylim = c(0,ymax),
+        names = c("E1","E2","E3","E4","E5"),
+        xlab = "Electrode type",
+        ylab = "resistance",
+        main = "resistance data without 2 and 15")
+abline(h = resistanceSbwMM.lme$fixedeffects[1,1])
+par(mfrow = c(1,1))
+
+#####################################################################
+# SIMPLE 1-WAY ANOVA
+# tmp = vec(t(resistance[-c(2,15),])[-1,])
+# fac = as.factor(names(tmp))
+# dataset = data.frame(type = fac,response = tmp)
+# 
+# summary(aov(response~type,data  =  dataset))
+```
+# Example. Growth data.
+
+Data
+
+```{r}
+DentalF =  subset(Dental,Dental$Sex ==  "Female")
+DentalM =  subset(Dental,Dental$Sex ==  "Male")
+interaction.plot(DentalF$distance,DentalF$Subject,DentalF$age,xlab = "Age (years)",ylab = "Orthodontic Growth data",trace.label = "Subject")
+interaction.plot(DentalM$distance,DentalM$Subject,DentalM$age,xlab = "Age (years)",ylab = "Orthodontic Growth data",trace.label = "Subject")
+growth = read.csv("data\\Growth.csv", header = TRUE,sep = ";")
+n = nrow(growth)
+
+ymax = max(growth[,3:6])
+ymin = min(growth[,3:6])
+
+plot(1:4,growth[1,3:6],type = "l",xaxt = "n",
+     ylim = c(ymin,ymax),xlim = c(1,4.5),
+     main = "Orthodontic Growth data",
+     xlab = "Age (years)",
+     ylab = "Bone density (g/cm2)")
+axis(1,labels = 8:14,at = seq(1,4,by = 0.5))
+for(i in 2:27){
+  lines(1:4,growth[i,3:6],lty = i)
+}
+
+for (i in 12:27){
+  lines(1:4,growth[i,3:6],lty = i,col = 2)
+}
+legend("topright",legend = 1:n,lty = 1:n,
+       col = c(rep(1,11),rep(2,16)),
+       title = "Subject",bty = "n")
+legend("topleft",legend = c("Girls","Boys"),col = 1:2,lty = 1,bty = "n")
+
+```
+
+ML and REML estimations
+
+```{r}
+options(contrasts = c("contr.SAS","contr.poly"))
+Dental = groupedData( distance ~ age | Subject, 
+                    data  =  as.data.frame( Dental ),
+                    FUN  =  mean,
+                    outer  =  ~ Sex,
+                    labels  =  list( x  =  "Age",
+                                   y  =  "Distance from pituitary to pterygomaxillary fissure" ),
+                    units  =  list( x  =  "(yr)", y  =  "(mm)") )
+
+
+DentalML.lme <- lme(distance~Sex*age, data  =  Dental,random  =  list(Subject = pdDiag(~age)),method = "ML")
+summary(DentalML.lme)
+
+
+DentalREML.lme <- lme(distance~Sex*age, data  =  Dental,random  =  list(Subject = pdDiag(~age)),method = "REML")
+summary(DentalREML.lme)
+```
+
+Data preparation 
+
+```{r}
+n =  length(levels(Dental$Subject))
+Ymat = matrix(0,n,4) 
+for(i in 1:n){
+  Ymat[i,]  = Dental$distance[Dental$Subject  ==  levels(Dental$Subject)[i]]}
+
+#Ymat = growth[,3:6]
+
+Xb = cbind(c(1,1,1,1),c(0,0,0,0),c(8,10,12,14),c(0,0,0,0))
+Xg = cbind(c(1,1,1,1),c(1,1,1,1),c(8,10,12,14),c(8,10,12,14))
+X  =  list()
+
+subject  =  levels(Dental$Subject)
+for(i in 1:n){
+  if (Dental$Sex[Dental$Subject  ==   levels(Dental$Subject)[i]][1]  ==   "Male") {X[[i]]  =  Xb } else {X[[i]]  =  Xg } 
+}
+k = 4
+t = c(8,10,12,14)
+Z1 = matrix(rep(1,4),ncol = 1)
+Z2 = t
+Z3 = diag(rep(1,4))
+
+Z  =  list(Z1,Z2,Z3)
+
+
+
+```
+
+Sbwust estimations
+
+```{r}
+
+growthMLE.lme = Roblme(Ymat,X,Z,rho = "MLE",r = 0.5,arp = 0.01,rhoMM = NULL,eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+
+growthMLE.lme$fixedeffects
+growthMLE.lme$theta
+
+
+growthStbw.lme = Roblme(Ymat,X,Z,rho = "t-biweight",r = 0.5,arp = 0.01,rhoMM = NULL,eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+
+growthStbw.lme$fixedeffects
+growthStbw.lme$theta
+
+growthSbw.lme = Roblme(Ymat,X,Z,rho = "biweight",r = 0.5,arp = 0.01,rhoMM = NULL,eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+
+growthSbw.lme$fixedeffects
+growthSbw.lme$theta
+
+growthSbwMM.lme = Roblme(Ymat,X,Z,rho = "biweight",r = 0.5,arp = 0.01,rhoMM = "biweight",eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+
+growthSbwMM.lme$fixedeffects
+growthSbwMM.lme$theta
+
+growthSbwMMtranslated.lme = Roblme(Ymat,X,Z,rho = "t-biweight",r = 0.5,arp = 0.01,rhoMM = "biweight",eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+
+growthSbwMMtranslated.lme$fixedeffects
+growthSbwMMtranslated.lme$theta
+```
+
+```{r}
+
+############################################################################################
+# RESISDUALS
+############################################################################################
+YMLEgrowthMat = matrix(0,nrow = n,ncol = k)
+YStbwgrowthMat = matrix(0,nrow = n,ncol = k)
+YSbwMMgrowthMat = matrix(0,nrow = n,ncol = k)
+
+for (i in 1:n){
+  YMLEgrowthMat[i,] = X[[i]]%*%growthMLE.lme$fixedeffects[,1]
+  YStbwgrowthMat[i,] = X[[i]]%*%growthStbw.lme$fixedeffects[,1]
+  YSbwMMgrowthMat[i,] = X[[i]]%*%growthSbwMM.lme$fixedeffects[,1]
+}
+
+resMLEgrowth = Ymat-YMLEgrowthMat
+resStbwgrowth = Ymat-YStbwgrowthMat
+resSbwMMgrowth = Ymat-YSbwMMgrowthMat
+
+# MAHALANOBIS DISTANCES OF RESIDUALS
+a = 0.025
+
+MDerrorMLEgrowth = numeric(n)
+MDerrorStbwgrowth = numeric(n)
+MDerrorSbwMMgrowth = numeric(n)
+
+L1 = Z1%*%t(Z1)
+L2 = Z2%*%t(Z2)
+L3 = Z3%*%t(Z3)
+
+VMLEgrowth = growthStbw.lme$theta[1]*L1+growthStbw.lme$theta[2]*L2+growthStbw.lme$theta[3]*L3
+VStbwgrowth = growthSbw.lme$theta[1]*L1+growthSbw.lme$theta[2]*L2+growthSbw.lme$theta[3]*L3
+VSbwMMgrowth = growthSbwMM.lme$theta[1]*L1+growthSbwMM.lme$theta[2]*L2+growthSbwMM.lme$theta[3]*L3
+
+for (i in 1:n){
+  MDerrorMLEgrowth[i] = mahalanobis(resMLEgrowth[i,],center = FALSE,cov = VMLEgrowth) # Note MD = d^2!
+  MDerrorStbwgrowth[i] = mahalanobis(resStbwgrowth[i,],center = FALSE,cov = VStbwgrowth) # Note MD = d^2!
+  MDerrorSbwMMgrowth[i] = mahalanobis(resSbwMMgrowth[i,],center = FALSE,cov = VSbwMMgrowth) # Note MD = d^2!
+}
+
+idMLE = (1:n)[MDerrorMLEgrowth>qchisq(0.975,df = k)]
+idStbw = (1:n)[MDerrorStbwgrowth>qchisq(0.975,df = k)]
+idSbwMM = (1:n)[MDerrorSbwMMgrowth>qchisq(0.975,df = k)]
+
+ymax = sqrt(max(MDerrorMLEgrowth,MDerrorStbwgrowth,MDerrorSbwMMgrowth))
+
+par(mfrow = c(2,2))
+plot(1:n,sqrt(MDerrorMLEgrowth),
+     xlab = "Index",
+     ylab = "MD's of MLE residuals",ylim = c(0,ymax))
+points(idMLE,sqrt(MDerrorMLEgrowth)[idMLE],pch = 16,col = 2)
+text(idMLE,sqrt(MDerrorMLEgrowth)[idMLE],label = growth[,1][idMLE],pos = 1,col = 2)
+abline(h = sqrt(qchisq(0.975,df = k)),col = 2)
+
+plot(1:n,sqrt(MDerrorStbwgrowth),
+     xlab = "Index",
+     ylab = "MD's of S-translated residuals",ylim = c(0,ymax))
+points(idStbw,sqrt(MDerrorStbwgrowth)[idStbw],pch = 16,col = 2)
+text(idStbw,sqrt(MDerrorStbwgrowth)[idStbw],label = growth[,1][idStbw],pos = 1,col = 2)
+abline(h = sqrt(qchisq(0.975,df = k)),col = 2)
+
+plot(1:n,sqrt(MDerrorSbwMMgrowth),
+     xlab = "Index",
+     ylab = "MD's of MM residuals",ylim = c(0,ymax))
+points(idSbwMM,sqrt(MDerrorSbwMMgrowth)[idSbwMM],pch = 16,col = 2)
+text(idSbwMM,sqrt(MDerrorSbwMMgrowth)[idSbwMM],label = growth[,1][idSbwMM],pos = 1,col = 2)
+abline(h = sqrt(qchisq(0.975,df = k)),col = 2)
+
+plot(sqrt(MDerrorMLEgrowth),sqrt(MDerrorSbwMMgrowth),
+     xlab = "MD's from MLE",
+     ylab = "MD's MM")
+points(sqrt(MDerrorMLEgrowth)[idMLE],sqrt(MDerrorSbwMMgrowth)[idMLE],pch = 16,col = 2)
+text(sqrt(MDerrorMLEgrowth)[idMLE],sqrt(MDerrorSbwMMgrowth)[idMLE],label = growth[,1][idMLE],pos = 1,col = 2)
+abline(h = sqrt(qchisq(0.975,df = k)),col = 2)
+abline(v = sqrt(qchisq(0.975,df = k)),col = 2)
+par(mfrow = c(1,1))
+
+
+#####################################################################
+# Figure 4.3 in Demidenko
+
+ymax = max(growth[,3:6])
+ymin = min(growth[,3:6])
+par(mfrow = c(1,2))
+plot(1:4,growth[1,3:6],type = "l",xaxt = "n",
+     ylim = c(ymin,ymax),
+     main = "Girls",xlab = "Age (years)",ylab = "Distance (mm)")
+axis(1,labels = 8:14,at = seq(1,4,by = 0.5))
+for(i in 2:11){
+  lines(1:4,growth[i,3:6],lty = 1)
+}
+lines(1:4,Xg%*%growthMLE.lme$fixedeffects[,1],col = 2,lwd = 2)
+lines(1:4,Xg%*%growthStbw.lme$fixedeffects[,1],col = 3,lwd = 2)
+lines(1:4,Xg%*%growthSbwMM.lme$fixedeffects[,1],col = 4,lwd = 2)
+lines(1:4,Xg%*%growthSbwMMtranslated.lme$fixedeffects[,1],col = 6,lwd = 2)
+
+plot(1:4,growth[12,3:6],type = "l",xaxt = "n",
+     ylim = c(ymin,ymax),
+     main = "Boys",xlab = "Age (years)",ylab = "Distance (mm)")
+for(i in 12:27){
+  lines(1:4,growth[i,3:6],lty = 1)
+}
+axis(1,labels = 8:14,at = seq(1,4,by = 0.5))
+lines(1:4,Xb%*%growthMLE.lme$fixedeffects[,1],col = 2,lwd = 2)
+lines(1:4,Xb%*%growthStbw.lme$fixedeffects[,1],col = 3,lwd = 2)
+lines(1:4,Xb%*%growthSbwMM.lme$fixedeffects[,1],col = 4,lwd = 2)
+lines(1:4,Xb%*%growthSbwMMtranslated.lme$fixedeffects[,1],col = 6,lwd = 2)
+```
+
+# Example. Metallic Oxide data.
+
+Data
+
+```{r}
+
+```
+
+ML and REML estimations
+
+```{r}
+metallicML.lme = lme(fixed = Response~Type,
+                   data = Metal,
+                   random = list(Lots = pdBlocked(list(pdIdent(~1),
+                                                      pdIdent(~Sample-1),
+                                                      pdIdent(~Chemist-1)))),
+                   method = "ML")
+summary(metallicML.lme)
+```
+
+Data preparation 
+
+```{r}
+metallic = Metal
+n = nrow(metallic)/8
+k = 8
+
+Ymat = matrix(0,nrow = n,ncol = k)
+Type = matrix(0,nrow = n,ncol = 1)
+for (i in 1:n){
+  Ymat[i,] = metallic[(8*(i-1)+1):(8*i),1]
+  Type[i] = metallic[8*i,5]
+}
+
+X1 = cbind(rep(1,8),rep(0,8))
+X2 = cbind(rep(1,8),rep(1,8))
+
+X  =  list()
+
+for(i in 1:n){
+  if (Type[i]  ==   1) {X[[i]]  =  X1 } else {X[[i]]  =  X2 } 
+}
+
+q = 2
+
+Z1 = cbind(rep(1,8))
+Z2 = cbind(c(rep(1,4),rep(0,4)),c(rep(0,4),rep(1,4)))
+Z3 = cbind(c(rep(1,2),rep(0,6)),
+         c(rep(0,2),rep(1,2),rep(0,4)),
+         c(rep(0,4),rep(1,2),rep(0,2)),
+         c(rep(0,6),rep(1,2)))
+
+Z4 = diag(rep(1,8))
+Z  =  list(Z1,Z2,Z3,Z4)
+```
+
+Sbwust estimations
+
+```{r}
+metalMLE.lme = Roblme(Ymat,X,Z,rho = "MLE",r = 0.5,arp = 0.01,rhoMM = NULL,eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+
+metalMLE.lme$fixedeffects
+metalMLE.lme$theta
+
+metalStbw.lme = Roblme(Ymat,X,Z,rho = "t-biweight",r = 0.5,arp = 0.01,rhoMM = NULL,eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+
+metalStbw.lme$fixedeffects
+metalStbw.lme$theta
+
+metalSbw.lme = Roblme(Ymat,X,Z,rho = "biweight",r = 0.5,arp = 0.01,rhoMM = NULL,eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+
+metalSbw.lme$fixedeffects
+metalSbw.lme$theta
+
+metalSbwMM.lme = Roblme(Ymat,X,Z,rho = "biweight",r = 0.5,arp = 0.01,rhoMM = "biweight",eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+
+metalSbwMM.lme$fixedeffects
+metalSbwMM.lme$theta
+
+metalSbwMMtranslated.lme = Roblme(Ymat,X,Z,rho = "t-biweight",r = 0.5,arp = 0.01,rhoMM = "biweight",eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+
+metalSbwMMtranslated.lme$fixedeffects
+metalSbwMMtranslated.lme$theta
+```
+
+```{r}
+L1  =  Z1%*%t(Z1)
+L2  =  Z2%*%t(Z2)
+L3  =  Z3%*%t(Z3)
+L4  =  Z4%*%t(Z4)
+
+############################################################################################
+# RESISDUALS
+############################################################################################
+YMLmat=matrix(0,nrow=n,ncol=k)
+YStbwmat=matrix(0,nrow=n,ncol=k)
+YSbwMMmat=matrix(0,nrow=n,ncol=k)
+
+resMLE=matrix(0,nrow=n,ncol=k)
+resStbw=matrix(0,nrow=n,ncol=k)
+resSbwMM=matrix(0,nrow=n,ncol=k)
+
+for (i in 1:n){
+  X=ifelse(Type[i]==1,1,0)*X1+ifelse(Type[i]==2,1,0)*X2
+  YMLmat[i,]=X%*%metalMLE.lme$fixedeffects[,1]
+  YStbwmat[i,]=X%*%metalStbw.lme$fixedeffects[,1]
+  YSbwMMmat[i,]=X%*%metalSbwMM.lme$fixedeffects[,1]
+}
+resMLE=Ymat-YMLmat
+resStbw=Ymat-YStbwmat
+resSbwMM=Ymat-YSbwMMmat
+
+cbind(resMLE[c(24,25,30),],
+resStbw[c(24,25,30),])
+############################################################################################
+# MAHALANOBIS DISTANCES OF RESIDUALS
+a=0.025
+
+MDerrorMLmetal=numeric(n)
+MDerrorStbwmetal=numeric(n)
+MDerrorSbwMMmetal=numeric(n)
+
+theta=metalMLE.lme$theta
+VthetaML=theta[1]*L1+theta[2]*L2+theta[3]*L3+theta[4]*L4
+
+theta=metalStbw.lme$theta
+VthetaStbw=theta[1]*L1+theta[2]*L2+theta[3]*L3+theta[4]*L4
+
+theta=metalSbwMM.lme$theta
+VthetaSbw=theta[1]*L1+theta[2]*L2+theta[3]*L3+theta[4]*L4
+
+
+for (i in 1:n){
+  MDerrorMLmetal[i]=mahalanobis(resMLE[i,],center=FALSE,cov=VthetaML) # Note MD=d^2!
+  MDerrorStbwmetal[i]=mahalanobis(resStbw[i,],center=FALSE,cov=VthetaStbw) # Note MD=d^2!
+  MDerrorSbwMMmetal[i]=mahalanobis(resSbwMM[i,],center=FALSE,cov=VthetaSbw) # Note MD=d^2!
+}
+
+idStbwmetal=(1:n)[MDerrorStbwmetal>qchisq(0.975,df=k)]
+idSbwMMmetal=(1:n)[MDerrorSbwMMmetal>qchisq(0.975,df=k)]
+
+par(mfrow=c(1,2))
+plot(sqrt(MDerrorMLmetal),sqrt(MDerrorStbwmetal),
+     xlab="MD's of ML residuals",
+     ylab="MD's of Stbw residuals",
+     main="Stbw residuals")
+points(sqrt(MDerrorMLmetal)[idStbwmetal],sqrt(MDerrorStbwmetal)[idStbwmetal],pch=16,col=2)
+text(sqrt(MDerrorMLmetal)[idStbwmetal],sqrt(MDerrorStbwmetal)[idStbwmetal],labels=idStbwmetal,pos=1,col=2)
+abline(h=sqrt(qchisq(0.975,df=k)),col=2)
+abline(v=sqrt(qchisq(0.975,df=k)),col=2)
+
+
+plot(sqrt(MDerrorMLmetal),sqrt(MDerrorSbwMMmetal),
+     xlab="MD's of ML residuals",
+     ylab="MD's of Sbw-MM residuals",
+     main="Sbw-MM residuals")
+points(sqrt(MDerrorMLmetal)[idSbwMMmetal],sqrt(MDerrorSbwMMmetal)[idSbwMMmetal],pch=16,col=2)
+text(sqrt(MDerrorMLmetal)[idSbwMMmetal],sqrt(MDerrorSbwMMmetal)[idSbwMMmetal],labels=idStbwmetal,pos=1,col=2)
+abline(h=sqrt(qchisq(0.975,df=k)),col=2)
+abline(v=sqrt(qchisq(0.975,df=k)),col=2)
+par(mfrow=c(1,1))
+
+
+ymax=max(sqrt(MDerrorStbwmetal))
+par(mfrow=c(1,2))
+plot((1:n)[Type==1],sqrt(MDerrorStbwmetal)[Type==1],
+     ylim=c(0,ymax),
+     xlab="Index",
+     ylab="MD's of Stbw residuals",
+     main="Type 1")
+points(idStbwmetal,sqrt(MDerrorStbwmetal)[idStbwmetal],pch=16,col=2)
+text(idStbwmetal,sqrt(MDerrorStbwmetal)[idStbwmetal],label=(1:n)[idStbwmetal],pos=1,col=2)
+abline(h=sqrt(qchisq(0.975,df=k)),col=2)
+
+plot((1:n)[Type==2],sqrt(MDerrorStbwmetal)[Type==2],
+     ylim=c(0,ymax),
+     xlab="Index",
+     ylab="MD's of Stbw residuals",
+     main="Type 2")
+points(idStbwmetal,sqrt(MDerrorStbwmetal)[idStbwmetal],pch=16,col=2)
+text(idStbwmetal,sqrt(MDerrorStbwmetal)[idStbwmetal],label=(1:n)[idStbwmetal],pos=1,col=2)
+abline(h=sqrt(qchisq(0.975,df=k)),col=2)
+par(mfrow=c(1,1))
+
+###############################################################
+names(Metal)
+
+typevec=ifelse(Metal[,5]=="type1",1,3)
+colvec=rep(1,length(typevec))
+colvec[c(193:200)]=2
+colvec[c(185:192)]=3
+
+coplot(Lots~Response|Sample+Chemist,data=Metal,pch=typevec,col=colvec,show.given = TRUE)
+
+```
+
+# Example. Semantic data.
+
+Data
+
+```{r}
+semantic=Semantic
+n  =  nlevels(semantic[,1])
+k  =  6
+
+# Renumbering subjects
+subject  =  NULL
+for (i in 1:n){
+  subject  =  c(subject,rep(i,6))
+}
+semantic[,1]  =  subject
+
+Ymat  =  matrix(0,nrow  =  n,ncol  =  k)
+for (i in 1:n){
+  Ymat[i,]  =  semantic[,4][semantic[,1]  ==  i]
+}
+apply(Ymat,MARGIN  =  2,FUN  =  mean)
+mean(Ymat)
+
+# REARRANGING TO ORDER y11,y12,y13,y21,y22,y23
+P  =  cbind(c(0,0,0,1,0,0),
+        c(0,1,0,0,0,0),
+        c(0,0,0,0,0,1),
+        c(0,0,1,0,0,0),
+        c(1,0,0,0,0,0),
+        c(0,0,0,0,1,0))
+
+###################################################################################
+# DISPLAY OF DATA
+###################################################################################
+
+semanticSHORT  =  semantic[semantic[,2]  ==   "short",]
+semanticLONG  =  semantic[semantic[,2]  ==   "long",]
+semanticREL = semantic[semantic[,3]  ==   "related",]
+semanticNEU = semantic[semantic[,3]  ==   "neutral",]
+semanticUNR = semantic[semantic[,3]  ==   "unrelated",]
+
+Yshort  =  matrix(0,nrow  =  n,ncol  =  3)
+Ylong  =  matrix(0,nrow  =  n,ncol  =  3)
+Yrel  =  matrix(0,nrow  =  n,ncol  =  2)
+Yneu  =  matrix(0,nrow  =  n,ncol  =  2)
+Yunr  =  matrix(0,nrow  =  n,ncol  =  2)
+for (i in 1:n){
+  Yshort[i,]  =  semanticSHORT[semanticSHORT[,1] ==  i,4]
+  Ylong[i,]  =  semanticLONG[semanticLONG[,1] ==  i,4]
+  Yrel[i,]  =  semanticREL[semanticREL[,1] ==  i,4]
+  Yneu[i,]  =  semanticNEU[semanticNEU[,1] ==  i,4]
+  Yunr[i,] = semanticUNR[semanticUNR[,1] ==  i,4]
+}
+
+
+par(mfrow = c(2,2))
+ymax = max((Yshort+Ylong)/2)
+ymin = min((Yshort+Ylong)/2)
+plot(1:3,(Yshort[1,]+Ylong[1,])/2,type = "l",
+     xlim = c(1,3.25),
+     ylim = c(ymin,ymax),xaxt = "n",
+     xlab = "Factor CONDITION",
+     ylab = "Mean Response",
+     main = "Mean response over CONDITION")
+axis(1,at = 1:3,labels  =  c("related","neutral","unrelated"))
+for (i in 1:n){
+  lines(1:3,(Yshort[i,]+Ylong[i,])/2,lty = i)
+}
+legend("topright",legend = 1:n,lty = 1:n,
+       title = "Subject",bty = "n",cex = 0.6)
+lines(1:3,(Yshort[19,]+Ylong[19,])/2,col = 2,lwd = 2)
+lines(1:3,(Yshort[12,]+Ylong[12,])/2,col = 3,lwd = 2)
+lines(1:3,(Yshort[7,]+Ylong[7,])/2,col = 4,lwd = 2)
+lines(1:3,(Yshort[14,]+Ylong[14,])/2,col = 5,lwd = 2)
+
+ymax = max((Yrel+Yneu+Yunr)/3)
+ymin = min((Yrel+Yneu+Yunr)/3)
+plot(1:2,((Yrel+Yneu+Yunr)/3)[1,],type = "l",
+     xlim = c(1,2.125),
+     ylim = c(ymin,ymax),xaxt = "n",
+     xlab = "Factor DELAY",
+     ylab = "Mean Response",
+     main = "Mean response over DELAY")
+axis(1,at = 1:2,labels  =  c("short","long"))
+for (i in 1:n){
+  lines(1:2,((Yrel+Yneu+Yunr)/3)[i,],lty = i)
+}
+legend("topright",legend = 1:n,lty = 1:n,
+       title = "Subject",bty = "n",cex = 0.6)
+lines(1:2,((Yrel+Yneu+Yunr)/3)[19,],col = 2,lwd = 2)
+lines(1:2,((Yrel+Yneu+Yunr)/3)[12,],col = 3,lwd = 2)
+lines(1:2,((Yrel+Yneu+Yunr)/3)[7,],col = 4,lwd = 2)
+lines(1:2,((Yrel+Yneu+Yunr)/3)[14,],col = 5,lwd = 2)
+
+ymax = max(Ymat)
+ymin = min(Ymat)
+plot(1:6,Ymat[1,],type = "l",ylim = c(ymin,ymax),
+     xlim = c(1,6.5),
+     xlab = "Factors",xaxt = "n",
+     ylab = "Mean Response",
+     main = "Mean response for Semantic Priming Data")
+axis(1,at = 1:6,labels = c("short/rel","long/rel","short/neu","long/neu",
+                       "short/unrel","long/unrel"))
+for (i in 2:n){
+  lines(1:6,Ymat[i,],lty = i)
+}
+legend("topright",legend = 1:n,lty = 1:n,
+       title = "Subject",bty = "n",cex = 0.75)
+lines(1:6,Ymat[19,],col = 2,lwd = 2)
+lines(1:6,Ymat[12,],col = 3,lwd = 2)
+lines(1:6,Ymat[7,],col = 4,lwd = 2)
+lines(1:6,Ymat[14,],col = 4,lwd = 2)
+
+interaction.plot(factor(semantic$Condition,levels = c("related", "neutral","unrelated")),
+                 factor(semantic$Delay,levels = c("short","long")),
+                 semantic$Resp,
+                 xlab  =  "Condition",
+                 ylab =  "Mean Response",
+                 trace.label  =  "Delay")
+par(mfrow = c(1,1))
+
+
+```
+
+ML and REML estimations
+
+```{r}
+Semantic.lme  <- lme(fixed = Resp~Delay*Condition,data = Semantic,
+random = list(Subject = pdBlocked(list(pdIdent(~1),pdIdent(~Delay-1),pdIdent(~Condition-1)))),
+method = "ML")
+Semantic.relme  <- lme(fixed = Resp~Delay*Condition,data = Semantic,
+random = list(Subject = pdBlocked(list(pdIdent(~1),pdIdent(~Delay-1),pdIdent(~Condition-1)))),
+method = "REML")
+```
+
+Data preparation 
+
+```{r}
+X1 = cbind(rep(1,6),
+        c(rep(1,3),rep(-1,3)),
+        c(1,0,-1,1,0,-1),
+        c(0,1,-1,0,1,-1),
+        c(1,0,-1,-1,0,1),
+        c(0,1,-1,0,-1,1))
+X = P%*%X1
+q = 6
+
+X  =  list()
+for(i in 1:n){
+  X[[i]]  =  X1
+}
+
+# DESIGN MATRICES RANDOM FIXED EFFECTS
+Z1 = matrix(rep(1,6),nrow = 6,ncol = 1)
+Z2 = cbind(c(rep(1,3),rep(0,3)),c(rep(0,3),rep(1,3)))
+Z3 = rbind(diag(1,3),diag(1,3))
+Z4 = diag(rep(1,6))
+
+Z1 = P%*%Z1
+Z2 = P%*%Z2
+
+Z = list(Z1,Z2,Z3,Z4)
+```
+
+Sbwust estimations
+
+```{r}
+semanticMLE.lme = Roblme(Ymat,X,Z,rho = "MLE",r = 0.5,arp = 0.01,rhoMM = NULL,eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+
+semanticMLE.lme$fixedeffects
+semanticMLE.lme$theta
+
+semanticStbw.lme = Roblme(Ymat,X,Z,rho = "t-biweight",r = 0.5,arp = 0.01,rhoMM = NULL,eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+
+semanticStbw.lme$fixedeffects
+semanticStbw.lme$theta
+
+semanticSbw.lme = Roblme(Ymat,X,Z,rho = "biweight",r = 0.5,arp = 0.01,rhoMM = NULL,eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+
+semanticSbw.lme$fixedeffects
+semanticSbw.lme$theta
+
+semanticSbwMM.lme = Roblme(Ymat,X,Z,rho = "biweight",r = 0.5,arp = 0.01,rhoMM = "biweight",eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+
+semanticSbwMM.lme$fixedeffects
+semanticSbwMM.lme$theta
+
+semanticSbwMMtranslated.lme = Roblme(Ymat,X,Z,rho = "t-biweight",r = 0.5,arp = 0.01,rhoMM = "biweight",eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+
+semanticSbwMMtranslated.lme$fixedeffects
+semanticSbwMMtranslated.lme$theta
+```
+
+```{r}
+############################################################################################
+# RESISDUALS
+############################################################################################
+YMLEsemanticMat=matrix(0,nrow=n,ncol=k)
+YSbwMMsemanticMat=matrix(0,nrow=n,ncol=k)
+
+for (i in 1:n){
+  YMLEsemanticMat[i,]=X1%*%semanticMLE.lme$fixedeffects[,1]
+  YSbwMMsemanticMat[i,]=X1%*%semanticSbwMM.lme$fixedeffects[,1]
+}
+
+resMLEsemantic=Ymat-YMLEsemanticMat
+resSbwMMsemantic=Ymat-YSbwMMsemanticMat
+
+
+############################################################################################
+# MAHALANOBIS DISTANCES OF RESIDUALS
+a=0.025
+L1=Z1%*%t(Z1)
+L2=Z2%*%t(Z2)
+L3=Z3%*%t(Z3)
+L4=Z4%*%t(Z4)
+MDerrorMLEsemantic=numeric(n)
+MDerrorSbwMMsemantic=numeric(n)
+VMLEsemantic=semanticMLE.lme$theta[1]*L1+semanticMLE.lme$theta[2]*L2+semanticMLE.lme$theta[3]*L3+semanticMLE.lme$theta[4]*L4
+VCBSsemantic=semanticSbwMM.lme$theta[1]*L1+semanticSbwMM.lme$theta[2]*L2+semanticSbwMM.lme$theta[3]*L3+semanticSbwMM.lme$theta[4]*L4
+
+
+for (i in 1:n){
+  MDerrorMLEsemantic[i]=mahalanobis(resMLEsemantic[i,],center=FALSE,cov=VMLEsemantic) # Note MD=d^2!
+  MDerrorSbwMMsemantic[i]=mahalanobis(resSbwMMsemantic[i,],center=FALSE,cov=VCBSsemantic) # Note MD=d^2!
+}
+
+plot(sqrt(MDerrorMLEsemantic),sqrt(MDerrorSbwMMsemantic),
+     xlab="MD's of MLE residuals",
+     ylab="MD's of CBS-MM residuals",
+     main="Mahalanobis distances for semantic data")
+
+IDsemantic=(1:n)[MDerrorSbwMMsemantic>qchisq(0.975,df=k)]
+
+points(sqrt(MDerrorMLEsemantic)[IDsemantic],sqrt(MDerrorSbwMMsemantic)[IDsemantic],pch=16,col=2)
+text(sqrt(MDerrorMLEsemantic)[IDsemantic],sqrt(MDerrorSbwMMsemantic)[IDsemantic],label=IDsemantic,pos=2,col=2)
+abline(h=sqrt(qchisq(0.975,df=k)),col=2)
+abline(v=sqrt(qchisq(0.975,df=k)),col=2)
+
+#######################################################################################
+# DATA REVISITED WITH MY OUTLIERS
+ymax=max(Ymat)
+ymin=min(Ymat)
+plot(1:6,Ymat[1,],type="l",ylim=c(ymin,ymax),
+     xlim=c(1,6.5),
+     xlab="Factors",xaxt="n",
+     ylab="Mean Response",
+     main="Semantic Priming Data")
+axis(1,at=1:6,labels=c("short/rel","long/rel","short/neu","long/neu",
+                       "short/unrel","long/unrel"))
+for (i in 2:n){
+  lines(1:6,Ymat[i,],lty=i)
+}
+lines(1:6,Ymat[19,],col=2,lwd=2)
+lines(1:6,Ymat[12,],col=3,lwd=2)
+lines(1:6,Ymat[7,],col=4,lwd=2)
+lines(1:6,Ymat[14,],col=5,lwd=2)
+
+legend("topright",legend=1:n,
+       lty=c(1:6,1,8:11,1,13,1,15:18,1,20:n),
+       lwd=c(1,1,1,1,1,1,2,1,1,1,1,2,1,2,1,1,1,1,2,1,1),
+       col=c(1,1,1,1,1,1,4,1,1,1,1,3,1,5,1,1,1,1,2,1,1),
+       title="Subject",bty="n",cex=1)
+
+
+# DATA REVISITED WITH HERITIER OUTLIERS
+ymax=max(Ymat)
+ymin=min(Ymat)
+plot(1:6,Ymat[1,],type="l",ylim=c(ymin,ymax),
+     xlim=c(1,6.5),
+     xlab="Factors",xaxt="n",
+     ylab="Mean Response",
+     main="Semantic Priming Data")
+axis(1,at=1:6,labels=c("short/rel","long/rel","short/neu","long/neu",
+                       "short/unrel","long/unrel"))
+for (i in 2:n){
+  lines(1:6,Ymat[i,],lty=i)
+}
+lines(1:6,Ymat[3,],col=2,lwd=2)
+lines(1:6,Ymat[16,],col=3,lwd=2)
+lines(1:6,Ymat[8,],col=4,lwd=2)
+
+legend("topright",legend=1:n,
+       lty=c(1:2,1,4:7,1,9:15,1,17:n),
+       lwd=c(1,1,2,1,1,1,1,2,1,1,1,1,1,1,1,2,1,1,1,1,1),
+       col=c(1,1,2,1,1,1,1,4,1,1,1,1,1,1,1,3,1,1,1,1,1),
+       title="Subject",bty="n",cex=1)
+
+
+#########################################################
+# INTERACTION PLOTS
+# OVERALL EFFECT
+boxplot(semantic[,4])
+
+# MAIN EFFECTS
+par(mfrow=c(1,2))
+boxplot(semantic[semantic[,2]=="short",4],
+        semantic[semantic[,2]=="long",4],
+        names=c("short","long"),
+        xlab="Delay",
+        main="Response for Delay")
+
+boxplot(semantic[semantic[,3]=="related",4],
+        semantic[semantic[,3]=="neutral",4],
+        semantic[semantic[,3]=="unrelated",4],
+        names=c("related","neutral","unrelated"),
+        xlab="Condition",
+        main="Response for Condition")
+par(mfrow=c(1,1))
+
+names(semantic)
+summary.aov(lm(Resp~Delay+Condition,data=semantic))
+
+semanticSHORT=semantic[semantic[,2]=="short",]
+semanticLONG=semantic[semantic[,2]=="long",]
+semanticREL=semantic[semantic[,3]=="related",]
+semanticNEU=semantic[semantic[,3]=="neutral",]
+semanticUNR=semantic[semantic[,3]=="unrelated",]
+
+Yshort=numeric(n)
+Ylong=numeric(n)
+Yrel=numeric(n)
+Yneu=numeric(n)
+Yunr=numeric(n)
+for (i in 1:n){
+  Yshort[i]=mean(semanticSHORT[semanticSHORT[,1]==i,4])
+  Ylong[i]=mean(semanticLONG[semanticLONG[,1]==i,4])
+  Yrel[i]=mean(semanticREL[semanticREL[,1]==i,4])
+  Yneu[i]=mean(semanticNEU[semanticNEU[,1]==i,4])
+  Yunr[i]=mean(semanticUNR[semanticUNR[,1]==i,4])
+}
+
+par(mfrow=c(2,2))
+boxplot(apply(Ymat,MARGIN=1,FUN=mean),
+        main="Mean",
+        xlab="",ylab="Mean Response")
+
+boxplot(Yshort,Ylong,names=c("Short","Long"),
+        main="Mean over Delay",xlab="Delay",ylab="Mean Response Condition")
+
+boxplot(Yrel,Yneu,Yunr,
+        main="Mean over Condition",xlab="Condition",ylab="Mean Response Delay")
+
+interaction.plot(factor(semantic$Delay,levels=c("short","long")),
+                 factor(semantic$Condition,levels=c("related", "neutral","unrelated")),
+                 semantic$Resp,
+                 xlab = "Delay",
+                 ylab= "Mean Response",
+                 trace.label = "Condition")
+par(mfrow=c(1,1))
+
+
+
+ymax=max(Ymat)
+ymin=min(Ymat)
+Yunrelated=cbind(semanticUNR[semanticUNR[,2]=="short",4],
+                 semanticUNR[semanticUNR[,2]=="long",4])
+Yneutral=cbind(semanticNEU[semanticNEU[,2]=="short",4],
+               semanticNEU[semanticNEU[,2]=="long",4])
+Yrelated=cbind(semanticREL[semanticREL[,2]=="short",4],
+               semanticREL[semanticREL[,2]=="long",4])
+
+par(mfrow=c(2,2))
+plot(1:2,Yunrelated[1,],type="l",ylim=c(ymin,ymax),
+     xlim=c(0.5,2.5),xaxt="n",
+     main="Unrelated",xlab="Delay",ylab="Mean repsonse for Unrelated")
+axis(1,at=1:2,labels=c("short","long"))     
+for (i in 2:n){
+  lines(1:2,Yunrelated[i,],lty=i)
+}
+legend("topright",legend=1:n,lty=1:n,
+       title="Subject",bty="n")
+lines(1:2,Yunrelated[19,],lwd=2,col=2)
+lines(1:2,Yunrelated[12,],lwd=2,col=3)
+
+plot(1:2,Yneutral[1,],type="l",ylim=c(ymin,ymax),
+     xlim=c(0.5,2.5),xaxt="n",
+     main="Neutral",xlab="Delay",ylab="Mean repsonse for Neutral")
+axis(1,at=1:2,labels=c("short","long"))     
+for (i in 2:n){
+  lines(1:2,Yneutral[i,],lty=i)
+}
+legend("topright",legend=1:n,lty=1:n,
+       title="Subject",bty="n")
+lines(1:2,Yneutral[19,],lwd=2,col=2)
+lines(1:2,Yneutral[12,],lwd=2,col=3)
+
+plot(1:2,Yrelated[1,],type="l",ylim=c(ymin,ymax),
+     xlim=c(0.5,2.5),xaxt="n",
+     main="Related",xlab="Delay",ylab="Mean repsonse for Related")
+axis(1,at=1:2,labels=c("short","long"))     
+for (i in 1:n){
+  lines(1:2,Yrelated[i,],lty=i)
+}
+
+legend("topright",legend=1:n,lty=1:n,
+       title="Subject",bty="n")
+lines(1:2,Yrelated[19,],lwd=2,col=2)
+lines(1:2,Yrelated[12,],lwd=2,col=3)
+
+interaction.plot(factor(semantic$Delay,levels=c("short","long")),
+                 factor(semantic$Condition,levels=c("related", "neutral","unrelated")),
+                 semantic$Resp,
+                 xlab = "Delay",
+                 ylab= "Mean Response",
+                 trace.label = "Condition")
+par(mfrow=c(1,1))
+
+par(mfrow=c(1,2))
+interaction.plot(factor(semantic$Delay,levels=c("short","long")),
+                 factor(semantic$Condition,levels=c("related", "neutral","unrelated")),
+                 semantic$Resp,
+                 xlab = "Delay",
+                 ylab= "Mean Response",
+                 trace.label = "Condition")
+
+interaction.plot(factor(semantic$Condition,levels=c("related", "neutral","unrelated")),
+  factor(semantic$Delay,levels=c("short","long")),
+                 semantic$Resp,
+                 xlab = "Condition",
+                 ylab= "Mean Response",
+                 trace.label = "Delay")
+par(mfrow=c(1,1))
 ```

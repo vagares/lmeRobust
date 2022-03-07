@@ -1,189 +1,219 @@
 filepath="C:\\Users\\vagares\\Documents\\lmeRobust\\"
-source(paste(filepath,"utils_functions.R",sep=""))
+source(paste(filepath,"biweight_functions.R",sep=""))
+source(paste(filepath,"asympt_norm_constants.R",sep=""))
 
-Roblme = function(y,xfit,zfit,rho ="t-biweight",r =0.25,arp=0.01,rhoMM=NULL,eps=1e-5,maxiter=100,eff=0.95,mu0=NULL,s0=NULL){
-  # y: outcome 
-  # xfit: X
-  # zfit: Z
-  # rho: rho function for the S estimation
+Roblme = function(Ymat,X,Z,rho ="t-biweight",r =0.5,arp=0.01,rhoMM=NULL,eps=1e-5,maxiter=100,eff=0.95,V0=NULL){
+  # Ymat: outcome 
+  # X: X in a list X[[i]] i = 1...n
+  # Z: Z in a list Z[[z]]
+  # rho: rho function for the S estimation (t-biweight, biweight or MLE)
   # r: breakdown point
   # arp: asymptotic rejection rate
-  # rhoMM: rho function for the MM estimation
-  # eps:
+  # rhoMM: rho function for the MM estimation (biweight)
+  # eps: bound for the stopping criteria
   # maxiter: maximum number of iteration
   # eff: efficiency
   # mu0: initial mean value
   # S0: initial covariance value
-  zlength <- length(zfit)
-  lxfit <- length(xfit)
-  p <- ncol(y)
-  n <- nrow(y)
-  #TO CHANGE
-  b0=2.312195
-  c0 = Tbsc(r,p)
-  if (rho =="t-biweight"){m0=0
-          ##TO CHANGE
+  lZ = length(Z)
+  lX = length(X)
+  k = ncol(Ymat)
+  n = nrow(Ymat)
+  # Setting the breakdown point and cut-off constant for translated biweight
+  if (rho =="t-biweight"){
+    c0 = rhotranslatedconst(k,r,arp,0.01,10)
+    m0 = sqrt(qchisq(1-arp,df=k))-c0
+    b0 = expecrhotranslated(k,m0,c0)
         }
-  if (rho =="biweight"){m0=0}
-  if (rho =="MLE"){m0=1000}
+  if (rho =="biweight"){
+    m0 = 0
+    c0 = rhoconst(k,r,0.01,100)
+    b0 = expecrho(k,c0)
+    }
+  if (rho =="MLE"){
+    m0 = 10000
+    c0 = rhotranslatedconst(k,r,arp,0.01,10)
+    b0 = expecrhotranslated(k,m0,c0)
+    }
   
 
-  qarray <- array(data = 0, dim = c(p,p,zlength))
-  marray <- qarray
-  for(i in 1:zlength) {
-    qarray[,  , i] <- zfit[[i]] %*% t(zfit[[i]])
+  L = array(data = 0, dim = c(k,k,lZ))
+  for(i in 1:lZ) {
+    L[,  , i] = Z[[i]] %*% t(Z[[i]])
   }
   
   
   #INITIAL VALUES TO CHANGE mu0, S0 ==> MCD weight and first stape
-  initial <- rogkmiss(y)
-  if(is.null(mu0) || is.null(s0)) {
-    if(is.null(mu0))
-      mu0 <- initial$center
-    if(is.null(s0))
-      s0 <- initial$cov
-  }
-  w <- initial$w
-  
-  mats = s0
-  inv <- solve(mats)
-  ##############################################################################
-  #  X matrices and XX' matrices
-  ##############################################################################
-  k <- ncol(xfit[[1]])
-  sx <- matrix(0,k,1)
-  tx <- matrix(0,k,k)
-  for(i in 1:n){
-    sx <- sx+w[i]*t(xfit[[i]])%*%inv%*%as.vector(y[i,])
-    tx <- tx+w[i]*t(xfit[[i]])%*%inv%*%xfit[[i]]
-  }
-  alpha <- solve(tx)%*%sx
-  
-  crit <- 100
-  iter <- 1
-  w1d <- rep(1, n)
-  d2 <- rep(0,n)
-  w2d <- w1d
-  vec <- rep(0,zlength)
-  Q <- matrix(0,zlength,zlength)
-  marray <- qarray
-  
-  while((iter <= maxiter) & (crit > eps)) {
-    inv <- solve(mats)
-    wt.old <- w1d
-    alpha.old <- alpha
-    mats.old <- mats
-    for(i in 1:n){
-      mu <- xfit[[i]]%*%alpha
-      d2[i] <- mahalanobis(y[i,],mu,mats)
+  Vstart=covMcd(Ymat)
+  if (is.null(V0) == TRUE){
+    V0 = Vstart$cov
     }
-    d <- sqrt(d2)
-    #h <- floor((n + p + 1)/2)
-    #quantile <- h/(n + 1)
-    #d <- (d * sqrt(qchisq(quantile, p)))/(sort(d)[h])
-    fun=function(kk){mean(sapply(d,function(d)biweightrhotranslated(d/kk,m0,c0)))-b0}
-    kk = uniroot(f = fun, c(0.01, 10))$root
-    d = d/kk
-    w1d <- sapply(d,function(d){biweightu2translated(d,m0,c0)})
-    w2d <- sapply(d,function(d){d*biweightpsitranslated(d,m0,c0)})
-    ##############################################################################
-    sx <- matrix(0,k,1)
-    tx <- matrix(0,k,k)
-    for(i in 1:n){
-      sx <- sx + w1d[i]*t(xfit[[i]]) %*%inv%*%as.vector(y[i,  ])
-      tx <- tx + w1d[i]*t(xfit[[i]])%*%inv%*%xfit[[i]]
-    }
-    alpha <- solve(tx)%*%sx
-    ##############################################################################
-    for(i in 1:zlength) {
-      marray[,  , i] <- inv %*% qarray[,  , i]
-    }
-    for(i in 1:zlength) {
-      for(j in 1:zlength) {
-        Q[i, j] <- sum(diag(marray[,  , i] %*% marray[
-          ,  , j]))
-      }
-    }
-    Qinv <- solve(Q)
-    vec <- vec * 0
-    UT <- matrix(0, zlength, n)
-    for(i in 1:zlength) {
-      for(j in 1:n) {
-        t1 <- xfit[[j]]%*%alpha
-        xc <- as.vector(y[j,  ] - t1)
-        vec[i] <- vec[i] + k*w1d[j] * (t(xc) %*% (inv %*%
-                                                    qarray[,  , i] %*% inv) %*% xc)
-        UT[i, j] <- t(xc) %*% (inv %*% qarray[, , i] %*% inv) %*% xc
-      }
-    }
-    s <- (solve(Q) %*% vec)/sum(w2d)
-    mats <- mats * 0
-    for(i in 1:zlength) {
-      mats <- mats + (s[i] * qarray[,  , i])
-    }
-    ##############################################################################
-    crit1 <- max(abs(alpha - alpha.old))
-    crit2 <- max(abs(mats - mats.old))
-    crit <- max(crit1, crit2)
-    iter <- iter + 1
-  }
-  if(is.null(rhoMM) ==FALSE) {
-    if (rhoMM =="t-biweight"){m1=0;c1=Tbsc1(eff,p-2)}
-    if (rhoMM =="biweight"){m1=0;c1=Tbsc1(eff,p-2)}
-    crit <- 100
-    iter <- 1
-    w1d <- rep(1, n)
-    d2 <- rep(0,n)
-    w2d <- w1d
-    vec <- rep(0,zlength)
-    Q <- matrix(0,zlength,zlength)
-    ##############################################################################
-    while((iter <= maxiter) & (crit > eps)) {
-      inv <- solve(mats)
-      wt.old <- w1d
-      alpha.old <- alpha
-      mats.old <- mats
-      for(i in 1:n){
-        mu <- xfit[[i]]%*%alpha
-        d2[i] <- mahalanobis(y[i,],mu,mats)
-      }
-      #d <- sqrt(d2)
-      #h <- floor((n + p + 1)/2)
-      #quantile <- h/(n + 1)
-      #d <- (d * sqrt(qchisq(quantile, p)))/(sort(d)[h])
-      w1d <- biweightu2translated(d,m1,c1)
-      w2d <- d*biweightpsitranslated(d,m1,c1)
-      ##############################################################################
-      sx <- matrix(0,k,1)
-      tx <- matrix(0,k,k)
-      for(i in 1:n){
-        sx <- sx + w1d[i]*t(xfit[[i]]) %*%inv%*%as.vector(y[i,  ])
-        tx <- tx + w1d[i]*t(xfit[[i]])%*%inv%*%xfit[[i]]
-      }
-      alpha <- solve(tx)%*%sx
-      mats <- mats
-      ##############################################################################
-      crit1 <- max(abs(alpha - alpha.old))
-      crit2 <- max(abs(mats - mats.old))
-      crit <- max(crit1, crit2)
-      iter <- iter + 1
-    }
-  }
-  
-  e.SE=1.0521
-  var.mu.R <- e.SE*mats/n
-  S.xiT.xi <- matrix(0,length(alpha),length(alpha))
-  S.xiT.Sig.xi <- matrix(0,length(alpha),length(alpha))
-  for(i in 1:n){
-    S.xiT.xi = S.xiT.xi+t(xfit[[i]])%*%xfit[[i]]
-    S.xiT.Sig.xi = S.xiT.Sig.xi+n*t(xfit[[i]])%*%var.mu.R%*%xfit[[i]]
-  }
-  var.alpha.R = solve(S.xiT.xi)%*%S.xiT.Sig.xi%*%solve(S.xiT.xi)
-  SE.alpha.R = sqrt(diag(var.alpha.R))
+    w = Vstart$mcd.wt
 
+  V = V0
+  ##############################################################################
+  #  RUN 1 ITERATION STEP
+  ##############################################################################
+  q = ncol(X[[1]])
+  betavecterm = matrix(0,nrow=q,ncol=1)
+  betamatterm = matrix(0,nrow=q,ncol=q)
+  for(i in 1:n){
+    betavecterm = betavecterm+w[i]*t(X[[i]])%*%solve(V)%*%as.vector(Ymat[i,])
+    betamatterm = betamatterm+w[i]*t(X[[i]])%*%solve(V)%*%X[[i]]
+  }
+  beta = solve(betamatterm)%*%betavecterm
+  
+  tol = 1
+  iter = 0
+  while ((iter <= maxiter) & (tol > eps)) {
+    wold = w
+    betaold  = beta
+    Vold  = V
+    ##############################################################################
+    # Iteration step
+    ##############################################################################
+    
+    # Re-scaling Mahalanobis distances to satisfy S-constraint
+    # array for n Mahalanobis distances
+    MD=numeric(n)
+    for (i in 1:n){
+      y = Ymat[i,]
+      mu = X[[i]]%*%betaold
+      MD[i] = mahalanobis(y,center = mu,cov = Vold) # Note MD=d^2!
+    }
+    
+    # determining scaling constant for MD
+    # for translated biweight
+
+     objfuntranslated=function(s){
+            mean(biweightrhotranslated(sqrt(MD)/s,m0,c0))-expecrhotranslated(k,m0,c0)
+            }
+     MDscaletranslated = uniroot(f=objfuntranslated,c(0.01,100))$root
+     MD = MD/MDscaletranslated^2
+
+     w = sapply(MD,function(MD){biweightutranslated(sqrt(MD),m0,c0)})
+     v = sapply(MD,function(MD){biweightu2translated(sqrt(MD),m0,c0)})
+
+ 
+  ##############################################################################
+    betavecterm = matrix(0,nrow=q,ncol=1)
+    betamatterm = matrix(0,nrow=q,ncol=q)
+    for(i in 1:n){
+      betavecterm = betavecterm + w[i]*t(X[[i]]) %*%solve(Vold)%*%as.vector(Ymat[i,  ])
+      betamatterm = betamatterm + w[i]*t(X[[i]])%*%solve(Vold)%*%X[[i]]
+    }
+    beta = solve(betamatterm)%*%betavecterm
+    ##############################################################################
+    Q = matrix(0,nrow=lZ,ncol=lZ)
+    for(i in 1:lZ) {
+      for(j in 1:lZ) {
+        Q[i, j] = sum(diag(solve(Vold) %*%L[,  , i] %*% solve(Vold) %*%L[ ,  , j]))
+      }
+    }
+
+    Uterm = matrix(0, nrow = lZ,ncol = n)
+    for(i in 1:n) {
+        y = as.vector(Ymat[i,])
+        for(j in 1:lZ) {
+          Uterm[j,i] = Uterm[j,i] + k*w[i] * (t(y- X[[i]]%*%betaold) %*% (solve(Vold) %*% L[,  , j] %*% solve(Vold)) %*% (y- X[[i]]%*%betaold))
+      }
+    }
+    theta =(1/sum(v))* (solve(Q) %*% apply(Uterm,1,sum))
+    V = 0
+    for (j in 1:lZ) {
+      V = V + (theta[j] * L[,  , j])
+    }
+    ##############################################################################
+    diffbeta = norm(beta - betaold,type="F")
+    difftheta = norm(V - Vold,type="F")
+    tol = max(diffbeta, difftheta)
+    iter = iter + 1
+  }
+  
+  termtXX = matrix(0,nrow=length(beta),ncol=length(beta))
+  for(i in 1:n){
+    termtXX = termtXX+t(X[[i]])%*%solve(V)%*%X[[i]]
+  }
+  varbeta = (constbetahattranslated(k,m0,c0))*solve(termtXX/n)
+  SEbeta = sqrt(diag(varbeta)/n)
+  
+  if(is.null(rhoMM) ==FALSE) {
+    objectf=function(c){
+      1/constbetahat(k,c)-eff 
+    }
+    c1=uniroot(objectf,interval=c(0.001,100))$root
+    
+
+    #if (rhoMM =="t-biweight"){
+    #  m1=sqrt(qchisq(1-arp,df=k))-c1
+    #  b0=expecrhotranslated(k,m1,c1)
+    #}
+    if (rhoMM =="biweight"){
+      m1=0
+      b0=expecrho(k,c1)
+    }
+    
+    
+    tol = 100
+    iter = 0
+
+    ##############################################################################
+    while((iter <= maxiter) & (tol > eps)) {
+
+      betaold  = beta
+
+      MD=numeric(n)
+      for (i in 1:n){
+        y=Ymat[i,]
+        mu = X[[i]]%*%beta
+        MD[i]=mahalanobis(y,center=mu,cov=V) # Note MD=d^2!
+      }
+      objfuntranslated=function(s){
+        mean(biweightrhotranslated(sqrt(MD)/s,m1,c1))-expecrhotranslated(k,m1,c1)
+      }
+      MDscaletranslated=uniroot(f=objfuntranslated,c(0.01,100))$root
+      MD=MD/MDscaletranslated^2
+    
+      w = sapply(MD,function(MD){biweightutranslated(sqrt(MD),m1,c1)})
+      v = sapply(MD,function(MD){biweightu2translated(sqrt(MD),m1,c1)})
+      
+      
+      objfuntranslated=function(s){
+        mean(biweightrhotranslated(sqrt(MD)/s,m1,c1))-expecrhotranslated(k,m1,c1)
+      }
+      MDscaletranslated=uniroot(f=objfuntranslated,c(0.01,100))$root
+      MD=MD/MDscaletranslated^2
+      
+      w = sapply(MD,function(MD){biweightutranslated(sqrt(MD),m1,c1)})
+
+      betavecterm = matrix(0,nrow=q,ncol=1)
+      betamatterm = matrix(0,nrow=q,ncol=q)
+      for(i in 1:n){
+        betavecterm = betavecterm + w[i]*t(X[[i]]) %*%solve(V)%*%as.vector(Ymat[i,  ])
+        betamatterm = betamatterm + w[i]*t(X[[i]])%*%solve(V)%*%X[[i]]
+      }
+      beta = solve(betamatterm)%*%betavecterm
+      
+      ##############################################################################
+      tol = norm(beta - betaold,type="F")
+      iter = iter + 1
+    }
+    termtXX = matrix(0,nrow=length(beta),ncol=length(beta))
+    for(i in 1:n){
+      termtXX = termtXX+t(X[[i]])%*%solve(V)%*%X[[i]]
+    }
+    varbeta = (constbetahattranslated(k,m1,c1))*solve(termtXX/n)
+    SEbeta = sqrt(diag(varbeta)/n)
+  }
+  
+  
+  tval=beta/SEbeta
+  pvalue=2*(1-pnorm(abs(tval)))
   
   
   #fixedeffects with estimates SE t-val p-value
-  fixedeffects=cbind(alpha,SE.alpha.R)
-  return(list(fixedeffects=fixedeffects,s=s,w=w1d,dis=d2))
+  fixedeffects=cbind(beta,SEbeta,tval,pvalue)
+  fixedeffects = data.frame(fixedeffects)
+  colnames(fixedeffects) = c("beta","SEbeta","tval","p-value")
+  return(list(fixedeffects=fixedeffects,theta=theta,w=w,dis=MD))
 }
