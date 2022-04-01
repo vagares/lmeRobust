@@ -7,6 +7,7 @@ output: html_notebook
 
 ```{r}
 plot(cars)
+# to complete
 ```
 
 # Simulations subsection 2
