@@ -171,8 +171,8 @@ Roblme = function(Ymat,X,Z,rho ="t-biweight",r =0.5,arp=0.01,rhoMM=NULL,eps=1e-5
       objfuntranslated=function(s){
         mean(biweightrhotranslated(sqrt(MD)/s,m1,c1))-expecrhotranslated(k,m1,c1)
       }
-      MDscaletranslated=uniroot(f=objfuntranslated,c(0.01,100))$root
-      MD=MD/MDscaletranslated^2
+      #MDscaletranslated=uniroot(f=objfuntranslated,c(0.01,100))$root
+      #MD/MDscaletranslated^2
     
       w = sapply(MD,function(MD){biweightutranslated(sqrt(MD),m1,c1)})
       v = sapply(MD,function(MD){biweightu2translated(sqrt(MD),m1,c1)})

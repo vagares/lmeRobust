@@ -318,7 +318,7 @@ Z  =  list(Z1,Z2,Z3)
 
 ```
 
-Sbwust estimations
+Robust estimations
 
 ```{r}
 
@@ -514,7 +514,7 @@ Z4 = diag(rep(1,8))
 Z  =  list(Z1,Z2,Z3,Z4)
 ```
 
-Sbwust estimations
+Robust estimations
 
 ```{r}
 metalMLE.lme = Roblme(Ymat,X,Z,rho = "MLE",r = 0.5,arp = 0.01,rhoMM = NULL,eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
@@ -818,7 +818,7 @@ Z2 = P%*%Z2
 Z = list(Z1,Z2,Z3,Z4)
 ```
 
-Sbwust estimations
+Robust estimations
 
 ```{r}
 semanticMLE.lme = Roblme(Ymat,X,Z,rho = "MLE",r = 0.5,arp = 0.01,rhoMM = NULL,eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
@@ -1077,4 +1077,120 @@ interaction.plot(factor(semantic$Condition,levels=c("related", "neutral","unrela
                  ylab= "Mean Response",
                  trace.label = "Delay")
 par(mfrow=c(1,1))
+```
+
+# Example : sleep study
+
+Data
+
+```{r}
+library(lme4)
+help(sleepstudy)
+
+table(sleepstudy$Subject)
+index=c(308,309,310, 330, 331, 332, 333, 334, 335, 337, 349, 350, 351, 352, 369, 370, 371, 372)
+n=length(index)
+k=10
+
+Ymat=matrix(0,nrow=n,ncol=k)
+for (i in 1:n){
+  Ymat[i,]=sleepstudy[sleepstudy$Subject==index[i],1]
+}
+
+Ymat=Ymat[,3:10]
+
+names(sleepstudy)
+coplot(Reaction~Days|Subject,data=sleepstudy,
+       xlab="Number of days of sleep deprivation",
+       ylab="Average reaction time (ms)",
+       panel=points,pch=16,show.given = FALSE,rows=3)
+
+ymin=min(Ymat)
+ymax=max(Ymat)
+plot(2:9,Ymat[1,],type="l",ylim=c(ymin,ymax))
+for (i in 2:18){
+  lines(2:9,Ymat[i,])
+}
+lines(2:9,Ymat[1,],col=2,lwd=2)
+lines(2:9,Ymat[6,],col=4,lwd=2)
+
+ymin=min(Ymat)
+ymax=max(Ymat)
+plot(2:9,Ymat[1,],pch=16,ylim=c(ymin,ymax),
+     xlab="Number of days of sleep deprivation",
+     ylab="Average reaction time (ms)")
+for (i in 2:18){
+  points(2:9,Ymat[i,],pch=16)
+}
+
+for (i in 1:18){
+  lines(2:9,Ymat[i,],col=8)
+}
+lines(2:9,Ymat[1,],col=2,lwd=2)
+lines(2:9,Ymat[6,],col=4,lwd=2)
+
+```
+
+
+Data preparation 
+
+```{r}
+
+Ymat=matrix(0,nrow=n,ncol=10)
+for (i in 1:n){
+  Ymat[i,]=sleepstudy[sleepstudy$Subject==index[i],1]
+}
+Ymat=Ymat[,3:10]
+
+n=nrow(Ymat)
+k=ncol(Ymat)
+
+
+q=ncol(X)
+
+Z1=rep(1,8)
+Z2=2:9
+
+
+X1=cbind(rep(1,k),2:9)
+X = list()
+for(i in 1:n){
+  X[[i]]  =  X1
+}
+
+# DESIGN MATRICES RANDOM FIXED EFFECTS
+Z1 = rep(1,8)
+Z2 = 2:9
+Z3 = diag(rep(1,k))
+
+Z = list(Z1,Z2,Z3)
+```
+
+Robust estimations
+
+```{r}
+metalMLE.lme = Roblme(Ymat,X,Z,rho = "MLE",r = 0.5,arp = 0.01,rhoMM = NULL,eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+
+metalMLE.lme$fixedeffects
+metalMLE.lme$theta
+
+metalStbw.lme = Roblme(Ymat,X,Z,rho = "t-biweight",r = 0.5,arp = 0.01,rhoMM = NULL,eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+
+metalStbw.lme$fixedeffects
+metalStbw.lme$theta
+
+metalSbw.lme = Roblme(Ymat,X,Z,rho = "biweight",r = 0.5,arp = 0.01,rhoMM = NULL,eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+
+metalSbw.lme$fixedeffects
+metalSbw.lme$theta
+
+metalSbwMM.lme = Roblme(Ymat,X,Z,rho = "biweight",r = 0.5,arp = 0.01,rhoMM = "biweight",eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+
+metalSbwMM.lme$fixedeffects
+metalSbwMM.lme$theta
+
+metalSbwMMtranslated.lme = Roblme(Ymat,X,Z,rho = "t-biweight",r = 0.5,arp = 0.01,rhoMM = "biweight",eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+
+metalSbwMMtranslated.lme$fixedeffects
+metalSbwMMtranslated.lme$theta
 ```
