@@ -1,9 +1,4 @@
-filepath="C:\\Users\\Anne\\Documents\\Texte_programmes\\Recherche\\Valerie_Stephane_Rik\\Github\\lmeRobust\\"
-source(paste(filepath,"biweight_functions.R",sep=""))
-source(paste(filepath,"asympt_norm_constants.R",sep=""))
-library(robustbase[ARG1]) 
-
-Roblme = function(Ymat,X,Z,rho ="t-biweight",r =0.5,arp=0.01,rhoMM=NULL,eps=1e-5,maxiter=100,eff=0.95,V0="MCD"){
+Roblme = function(Ymat,X,Z,rho ="t-biweight",r =0.5,arp=0.01,rhoMM=NULL,eps=1e-5,maxiter=100,eff=0.95,cov0="MCD"){
   # Ymat: outcome 
   # X: X in a list X[[i]] i = 1...n
   # Z: Z in a list Z[[z]]
@@ -15,10 +10,11 @@ Roblme = function(Ymat,X,Z,rho ="t-biweight",r =0.5,arp=0.01,rhoMM=NULL,eps=1e-5
   # maxiter: maximum number of iteration
   # eff: efficiency
   
-  # V0: initial covariance and weights (MCD from the robustbase package)
+  # cov0: initial covariance and weights (MCD from the robustbase package)
 
-##############################################################################
-  #  INITIALIZATION  ##############################################################################
+  ##############################################################################
+  #  INITIALIZATION  
+  ##############################################################################
   # Dimensions
   lZ = length(Z)
   lX = length(X)
@@ -51,11 +47,11 @@ Roblme = function(Ymat,X,Z,rho ="t-biweight",r =0.5,arp=0.01,rhoMM=NULL,eps=1e-5
   
   # Initial values for the covariance and weights
   
-  if (V0 == "MCD"){
+  if (cov0 == "MCD"){
     Vstart=covMcd(Ymat)
     V0 = Vstart$cov
     
-    w = Vstart$mcd.wt # In
+    w = Vstart$mcd.wt # Initial weights
   } else {
   print("Error: the input has to be MCD")
   }
@@ -101,7 +97,8 @@ Roblme = function(Ymat,X,Z,rho ="t-biweight",r =0.5,arp=0.01,rhoMM=NULL,eps=1e-5
     objfuntranslated=function(s){
             mean(biweightrhotranslated(sqrt(MD)/s,m0,c0))-expecrhotranslated(k,m0,c0)
             }
-     MDscaletranslated = uniroot(f=objfuntranslated,c(0.01,100))$root # determining scaling constant for MDfor translated biweight     MD = MD/MDscaletranslated^2
+     MDscaletranslated = uniroot(f=objfuntranslated,c(0.01,100))$root # determining scaling constant for MDfor translated biweight    
+     MD = MD/MDscaletranslated^2
 
      w = sapply(MD,function(MD){biweightutranslated(sqrt(MD),m0,c0)})# Computation of the translated biweight function u(s)s^2=psi(s)s at the Mahalanobis distance
      v = sapply(MD,function(MD){biweightu2translated(sqrt(MD),m0,c0)})#
@@ -167,20 +164,17 @@ Roblme = function(Ymat,X,Z,rho ="t-biweight",r =0.5,arp=0.01,rhoMM=NULL,eps=1e-5
 ##############################################################################
 #  COMPUTATION of the MM-ESTIMATORS (if chosen)
 ##############################################################################
-
+  if(is.null(rhoMM) ==FALSE) {
   if (rhoMM =="biweight"){    # Constants computation
     objectf=function(c){
       1/constbetahat(k,c)-eff 
     }
     c1=uniroot(objectf,interval=c(0.001,100))$root
-    
-    
-
+    m1=0
+    b0=expecrho(k,c1)
     
     tol = 100
     iter = 0
-
-    
     ##########################################################    
     # Iteration steps for MM-estimators  
     ##########################################################                       
@@ -196,16 +190,10 @@ Roblme = function(Ymat,X,Z,rho ="t-biweight",r =0.5,arp=0.01,rhoMM=NULL,eps=1e-5
         MD[i]=mahalanobis(y,center=mu,cov=V) # Note MD=d^2!
       }
       
-      
-      
-    
       w = sapply(MD,function(MD){biweightutranslated(sqrt(MD),m1,c1)})
       v = sapply(MD,function(MD){biweightu2translated(sqrt(MD),m1,c1)})
       
-      
-      
-      
-      # Beta computation
+            # Beta computation
       betavecterm = matrix(0,nrow=q,ncol=1)
       betamatterm = matrix(0,nrow=q,ncol=q)
       for(i in 1:n){
@@ -229,7 +217,7 @@ Roblme = function(Ymat,X,Z,rho ="t-biweight",r =0.5,arp=0.01,rhoMM=NULL,eps=1e-5
     }
     varbeta = (constbetahattranslated(k,m1,c1))*solve(termtXX/n)
     SEbeta = sqrt(diag(varbeta)/n)
-    } # End of the MM computations
+    }} # End of the MM computations
   
   
   tval=beta/SEbeta # Test statistics
@@ -242,4 +230,3 @@ Roblme = function(Ymat,X,Z,rho ="t-biweight",r =0.5,arp=0.01,rhoMM=NULL,eps=1e-5
   colnames(fixedeffects) = c("beta","SEbeta","tval","p-value")
   return(list(fixedeffects=fixedeffects,theta=theta,w=w,dis=MD))
   }
-#[ARG1]Necessary for MCD
