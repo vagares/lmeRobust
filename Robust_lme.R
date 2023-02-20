@@ -19,6 +19,8 @@ Roblme = function(Ymat,X,Z,rho ="t-biweight",r =0.5,arp=0.01,rhoMM=NULL,eps=1e-5
   lX = length(X)
   k = ncol(Ymat)
   n = nrow(Ymat)
+  Z[[lZ+1]] =  diag(rep(1,k)) # add identity matrix for error
+  lZ = length(Z)
   # Setting the breakdown point and cut-off constant for translated biweight
   if (rho =="t-biweight"){
     c0 = rhotranslatedconst(k,r,arp,0.01,10)
@@ -133,9 +135,12 @@ Roblme = function(Ymat,X,Z,rho ="t-biweight",r =0.5,arp=0.01,rhoMM=NULL,eps=1e-5
   termtXX = matrix(0,nrow=length(beta),ncol=length(beta))
   for(i in 1:n){
     termtXX = termtXX+t(X[[i]])%*%solve(V)%*%X[[i]]
-    }
-  varbeta = (constbetahattranslated(k,m0,c0))*solve(termtXX/n)
-  SEbeta = sqrt(diag(varbeta)/n)
+  }
+  betaS=beta
+  varbetaS = (constbetahattranslated(k,m0,c0))*solve(termtXX/n)
+  SEbetaS = sqrt(diag(varbetaS)/n)
+  tvalS=betaS/SEbetaS
+  pvalueS=2*(1-pnorm(abs(tvalS)))
   
   if(is.null(rhoMM) ==FALSE) {
     objectf=function(c){
@@ -156,7 +161,7 @@ Roblme = function(Ymat,X,Z,rho ="t-biweight",r =0.5,arp=0.01,rhoMM=NULL,eps=1e-5
     
     tol = 100
     iter = 0
-
+    beta = betaS
     ##############################################################################
     while((iter <= maxiter) & (tol > eps)) {
 
@@ -190,18 +195,26 @@ Roblme = function(Ymat,X,Z,rho ="t-biweight",r =0.5,arp=0.01,rhoMM=NULL,eps=1e-5
     for(i in 1:n){
       termtXX = termtXX+t(X[[i]])%*%solve(V)%*%X[[i]]
     }
-    varbeta = (constbetahattranslated(k,m1,c1))*solve(termtXX/n)
-    SEbeta = sqrt(diag(varbeta)/n)
+    betaMM=beta
+    varbetaMM = (constbetahattranslated(k,m1,c1))*solve(termtXX/n)
+    SEbetaMM = sqrt(diag(varbetaMM)/n)
+  }else{
+    betaMM = NA
+    varbetaMM = NA
+    SEbetaMM = NA
   }
   
   
-  tval=beta/SEbeta
-  pvalue=2*(1-pnorm(abs(tval)))
+  tvalMM=betaMM/SEbetaMM
+  pvalueMM=2*(1-pnorm(abs(tvalMM)))
   
   
   #fixedeffects with estimates SE t-val p-value
-  fixedeffects=cbind(beta,SEbeta,tval,pvalue)
-  fixedeffects = data.frame(fixedeffects)
-  colnames(fixedeffects) = c("beta","SEbeta","tval","p-value")
-  return(list(fixedeffects=fixedeffects,theta=theta,w=w,dis=MD))
+  fixedeffectsS=cbind(betaS,SEbetaS,tvalS,pvalueS)
+  fixedeffectsMM=cbind(betaMM,SEbetaMM,tvalMM,pvalueMM)
+  fixedeffectsS = data.frame(fixedeffectsS)
+  fixedeffectsMM = data.frame(fixedeffectsMM)
+  colnames(fixedeffectsS) = c("beta","SEbeta","tval","p-value")
+  colnames(fixedeffectsMM) = c("beta","SEbeta","tval","p-value")
+  return(list(fixedeffectsS=fixedeffectsS,fixedeffectsMM=fixedeffectsMM,theta=theta,w=w,dis=MD))
 }
