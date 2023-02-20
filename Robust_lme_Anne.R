@@ -97,8 +97,7 @@ Roblme = function(Ymat,X,Z,rho ="t-biweight",r =0.5,arp=0.01,rhoMM=NULL,eps=1e-5
     objfuntranslated=function(s){
             mean(biweightrhotranslated(sqrt(MD)/s,m0,c0))-expecrhotranslated(k,m0,c0)
             }
-     MDscaletranslated = uniroot(f=objfuntranslated,c(0.01,100))$root # determining scaling constant for MDfor translated biweight    
-     MD = MD/MDscaletranslated^2
+     MDscaletranslated = uniroot(f=objfuntranslated,c(0.01,100))$root # determining scaling constant for MDfor translated biweight     MD = MD/MDscaletranslated^2
 
      w = sapply(MD,function(MD){biweightutranslated(sqrt(MD),m0,c0)})# Computation of the translated biweight function u(s)s^2=psi(s)s at the Mahalanobis distance
      v = sapply(MD,function(MD){biweightu2translated(sqrt(MD),m0,c0)})#
