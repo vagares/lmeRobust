@@ -2,7 +2,7 @@ filepath="C:\\Users\\vagares\\Documents\\lmeRobust\\"
 source(paste(filepath,"biweight_functions.R",sep=""))
 source(paste(filepath,"asympt_norm_constants.R",sep=""))
 
-Roblme = function(Ymat,X,Z,rho ="t-biweight",r =0.5,arp=0.01,rhoMM=NULL,eps=1e-5,maxiter=100,eff=0.95,V0=NULL){
+Roblme = function(Ymat,X,Z,E=NULL,rho ="t-biweight",r =0.5,arp=0.01,rhoMM=NULL,eps=1e-5,maxiter=100,eff=0.95,V0=NULL){
   # Ymat: outcome 
   # X: X in a list X[[i]] i = 1...n
   # Z: Z in a list Z[[z]]
@@ -19,7 +19,8 @@ Roblme = function(Ymat,X,Z,rho ="t-biweight",r =0.5,arp=0.01,rhoMM=NULL,eps=1e-5
   lX = length(X)
   k = ncol(Ymat)
   n = nrow(Ymat)
-  Z[[lZ+1]] =  diag(rep(1,k)) # add identity matrix for error
+  if(is.null(E) ==TRUE) { Z[[lZ+1]] =  diag(rep(1,k)) # add identity matrix for error
+  }else{Z[[lZ+1]] =  E}
   lZ = length(Z)
   # Setting the breakdown point and cut-off constant for translated biweight
   if (rho =="t-biweight"){
