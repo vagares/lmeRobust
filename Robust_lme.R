@@ -2,7 +2,7 @@ filepath="C:\\Users\\vagares\\Documents\\lmeRobust\\"
 source(paste(filepath,"biweight_functions.R",sep=""))
 source(paste(filepath,"asympt_norm_constants.R",sep=""))
 
-Roblme = function(Ymat,X,Z,E=NULL,rho ="t-biweight",r =0.5,arp=0.01,rhoMM=NULL,eps=1e-5,maxiter=100,eff=0.95,V0=NULL){
+Roblme = function(Ymat,X,Z,E=NULL,L=NULL,rho ="t-biweight",r =0.5,arp=0.01,rhoMM=NULL,eps=1e-5,maxiter=100,eff=0.95,V0=NULL){
   # Ymat: outcome 
   # X: X in a list X[[i]] i = 1...n
   # Z: Z in a list Z[[z]]
@@ -19,9 +19,10 @@ Roblme = function(Ymat,X,Z,E=NULL,rho ="t-biweight",r =0.5,arp=0.01,rhoMM=NULL,e
   lX = length(X)
   k = ncol(Ymat)
   n = nrow(Ymat)
+  if(is.null(L) ==TRUE) {
   if(is.null(E) ==TRUE) { Z[[lZ+1]] =  diag(rep(1,k)) # add identity matrix for error
   }else{Z[[lZ+1]] =  E}
-  lZ = length(Z)
+  lZ = length(Z)}else{lZ = length(L)}
   # Setting the breakdown point and cut-off constant for translated biweight
   if (rho =="t-biweight"){
     c0 = rhotranslatedconst(k,r,arp,0.01,10)
@@ -40,10 +41,14 @@ Roblme = function(Ymat,X,Z,E=NULL,rho ="t-biweight",r =0.5,arp=0.01,rhoMM=NULL,e
     }
   
 
-  L = array(data = 0, dim = c(k,k,lZ))
+  if(is.null(L) ==TRUE) {L = array(data = 0, dim = c(k,k,lZ))
   for(i in 1:lZ) {
     L[,  , i] = Z[[i]] %*% t(Z[[i]])
-    }
+  }}else{LL = array(data = 0, dim = c(k,k,lZ))
+  for(i in 1:lZ) {
+    LL[,  , i] = L[[i]] 
+  }
+  L=LL}
   
   
   #INITIAL VALUES TO CHANGE mu0, S0 ==> MCD weight and first stape
