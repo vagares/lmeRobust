@@ -44,10 +44,12 @@ Roblme = function(Ymat,X,Z,E=NULL,L=NULL,rho ="t-biweight",r =0.5,arp=0.01,rhoMM
   if(is.null(L) ==TRUE) {L = array(data = 0, dim = c(k,k,lZ))
   for(i in 1:lZ) {
     L[,  , i] = Z[[i]] %*% t(Z[[i]])
-  }}else{LL = array(data = 0, dim = c(k,k,lZ))
-  for(i in 1:lZ) {
-    LL[,  , i] = L[[i]] 
-  }
+  }}else{
+    lZ=4
+    LL = array(data = 0, dim = c(k,k,lZ))
+    for(i in 1:lZ) {
+      LL[,  , i] = L[[i]] 
+    }
   L=LL}
   
   

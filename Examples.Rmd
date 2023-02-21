@@ -77,31 +77,38 @@ for(i in 1:n){
 k = 5
 
 Z1 = rep(1,5)
-Z2 = diag(rep(1,k))
+#Z2 = diag(rep(1,k))
 
-Z = list(Z1,Z2)
+#Z = list(Z1,Z2)
+Z = list(Z1)
 ```
 
 Robust estimations
 
 ```{r}
 
-resistanceMLE.lme = Roblme(Ymat,X,Z,rho = "MLE",r = 0.5,arp = 0.01,rhoMM = NULL,eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+resistanceMLE.lme = Roblme(Ymat,X,Z,E=NULL,L=NULL,rho = "MLE",r = 0.5,arp = 0.01,rhoMM = NULL,eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
 
 resistanceMLE.lme$fixedeffects
 resistanceMLE.lme$theta
 
-resistanceStbw.lme = Roblme(Ymat,X,Z,rho = "t-biweight",r = 0.5,arp = 0.01,rhoMM = NULL,eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+resistanceStbw.lme = Roblme(Ymat,X,Z,E=NULL,L=NULL,rho = "t-biweight",r = 0.5,arp = 0.01,rhoMM = NULL,eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
 
 resistanceStbw.lme$fixedeffects
 resistanceStbw.lme$theta
 
-resistanceSbw.lme = Roblme(Ymat,X,Z,rho = "biweight",r = 0.5,arp = 0.01,rhoMM = NULL,eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+resistanceSbw.lme = Roblme(Ymat,X,Z,E=NULL,L=NULL,rho = "biweight",r = 0.5,arp = 0.01,rhoMM = NULL,eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+
+library(varComprob)
+varComprob(Resis/100~Elec, groups = groups,
+                                  data = Electrode, varcov = K,
+                                  control=varComprob.control(method="compositeS", lower=c(0,-Inf,0)))
+
 
 resistanceSbw.lme$fixedeffects
 resistanceSbw.lme$theta
 
-resistanceSbwMM.lme = Roblme(Ymat,X,Z,rho = "biweight",r = 0.5,arp = 0.01,rhoMM = "biweight",eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+resistanceSbwMM.lme = Roblme(Ymat,X,Z,E=NULL,L=NULL,rho = "biweight",r = 0.5,arp = 0.01,rhoMM = "biweight",eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
 
 resistanceSbwMM.lme$fixedeffects
 resistanceSbwMM.lme$theta
@@ -312,8 +319,8 @@ Z1 = matrix(rep(1,4),ncol = 1)
 Z2 = t
 Z3 = diag(rep(1,4))
 
-Z  =  list(Z1,Z2,Z3)
-
+#Z  =  list(Z1,Z2,Z3)
+Z  =  list(Z1,Z2)
 
 
 ```
@@ -322,32 +329,66 @@ Robust estimations
 
 ```{r}
 
-growthMLE.lme = Roblme(Ymat,X,Z,rho = "MLE",r = 0.5,arp = 0.01,rhoMM = NULL,eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+growthMLE.lme = Roblme(Ymat,X,Z,rho = "MLE",E=NULL,L=NULL,r = 0.5,arp = 0.01,rhoMM = NULL,eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
 
 growthMLE.lme$fixedeffects
 growthMLE.lme$theta
 
 
-growthStbw.lme = Roblme(Ymat,X,Z,rho = "t-biweight",r = 0.5,arp = 0.01,rhoMM = NULL,eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+growthStbw.lme = Roblme(Ymat,X,Z,rho = "t-biweight",E=NULL,L=NULL,r = 0.5,arp = 0.01,rhoMM = NULL,eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
 
 growthStbw.lme$fixedeffects
 growthStbw.lme$theta
 
-growthSbw.lme = Roblme(Ymat,X,Z,rho = "biweight",r = 0.5,arp = 0.01,rhoMM = NULL,eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+growthSbw.lme = Roblme(Ymat,X,Z,rho = "biweight",E=NULL,L=NULL,r = 0.5,arp = 0.01,rhoMM = NULL,eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
 
 growthSbw.lme$fixedeffects
 growthSbw.lme$theta
 
-growthSbwMM.lme = Roblme(Ymat,X,Z,rho = "biweight",r = 0.5,arp = 0.01,rhoMM = "biweight",eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+growthSbwMM.lme = Roblme(Ymat,X,Z,rho = "biweight",E=NULL,L=NULL,r = 0.5,arp = 0.01,rhoMM = "biweight",eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
 
 growthSbwMM.lme$fixedeffects
 growthSbwMM.lme$theta
 
-growthSbwMMtranslated.lme = Roblme(Ymat,X,Z,rho = "t-biweight",r = 0.5,arp = 0.01,rhoMM = "biweight",eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
+growthSbwMMtranslated.lme = Roblme(Ymat,X,Z,rho = "t-biweight",E=NULL,L=NULL,r = 0.5,arp = 0.01,rhoMM = "biweight",eps = 1e-5,maxiter = 100,eff = 0.95,V0 = NULL)
 
 growthSbwMMtranslated.lme$fixedeffects
 growthSbwMMtranslated.lme$theta
 ```
+
+# Comparison with robustvarComp package
+
+```{r}
+library(robustvarComp)
+data(Orthodont)
+
+  z1 <- rep(1, 4)
+  z2 <- c(8,10,12,14)
+  K <- list()
+  # K[[1]] <- tcrossprod(z1,z1) ## Int
+  # K[[2]] <- tcrossprod(z1,z2) + tcrossprod(z2,z1) ## Int:age
+  # K[[3]] <- tcrossprod(z2,z2) ## age
+  # names(K) <- c("Int", "Int:age", "age")
+  
+   K[[1]] <- tcrossprod(z1,z1) ## Int
+  # K[[2]] <- tcrossprod(z1,z2) + tcrossprod(z2,z1) ## Int:age
+   K[[2]] <- tcrossprod(z2,z2) ## age
+   names(K) <- c("Int",  "age")
+   
+  p <- 4
+  n <- 27
+  groups <- cbind(rep(1:p, each=n), rep((1:n), p))
+
+
+  OrthodontS <- varComprob(distance ~ age*Sex, groups = groups,
+      data = Orthodont, varcov = K,
+      control=varComprob.control(method="S", psi = "bisquare",lower=c(0,-Inf,0)))
+summary(OrthodontS)
+  growthSbw.lme = Roblme(Ymat,X,Z,rho = "biweight",E=NULL,L=NULL,r = 0.5,arp = 0.1,rhoMM = NULL,eps = 1e-6,maxiter = 100,eff = 0.95,V0 = NULL)
+
+growthSbw.lme$fixedeffectsS 
+
+````
 
 ```{r}
 
