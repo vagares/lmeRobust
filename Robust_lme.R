@@ -28,16 +28,22 @@ Roblme = function(Ymat,X,Z,E=NULL,L=NULL,rho ="t-biweight",r =0.5,arp=0.01,rhoMM
     c0 = rhotranslatedconst(k,r,arp,0.01,10)
     m0 = sqrt(qchisq(1-arp,df=k))-c0
     b0 = expecrhotranslated(k,m0,c0)
+    s1 = sigma1t(k,m0,c0)
+    s2 = sigma2t(k,m0,c0) 
     }
   if (rho =="biweight"){
     m0 = 0
     c0 = rhoconst(k,r,0.01,100)
     b0 = expecrho(k,c0)
+    s1 = sigma1(k,c0)
+    s2 = sigma2(k,c0)
     }
   if (rho =="MLE"){
     m0 = 10000
     c0 = rhotranslatedconst(k,r,arp,0.01,10)
     b0 = expecrhotranslated(k,m0,c0)
+    s1 = sigma1t(k,m0,c0)
+    s2 = sigma2t(k,m0,c0)  
     }
   
 
@@ -146,6 +152,18 @@ Roblme = function(Ymat,X,Z,E=NULL,L=NULL,rho ="t-biweight",r =0.5,arp=0.01,rhoMM
   }
   betaS=beta
   varbetaS = (constbetahattranslated(k,m0,c0))*solve(termtXX/n)
+  
+  vecL = matrix(0,k*k,lZ)
+  for (j in 1:lZ) {
+    vecL[,j] = as.vector(L[,  , j])
+  }
+  thetaS=theta
+  term = solve(t(vecL) %*%(solve(V)%x%solve(V))%*%vecL)
+  varthetaS = 2 * s1 *term  + s2 * thetaS%*%t(thetaS)
+  SEthetaS = sqrt(diag(varthetaS)/n)
+  tvalthetaS=thetaS/SEthetaS
+  pvaluethetaS=2*(1-pnorm(abs(tvalthetaS)))
+  
   SEbetaS = sqrt(diag(varbetaS)/n)
   tvalS=betaS/SEbetaS
   pvalueS=2*(1-pnorm(abs(tvalS)))
@@ -220,9 +238,12 @@ Roblme = function(Ymat,X,Z,E=NULL,L=NULL,rho ="t-biweight",r =0.5,arp=0.01,rhoMM
   #fixedeffects with estimates SE t-val p-value
   fixedeffectsS=cbind(betaS,SEbetaS,tvalS,pvalueS)
   fixedeffectsMM=cbind(betaMM,SEbetaMM,tvalMM,pvalueMM)
+  
+  summarythetaS = cbind(theta,SEthetaS,tvalthetaS,pvaluethetaS)
+  
   fixedeffectsS = data.frame(fixedeffectsS)
   fixedeffectsMM = data.frame(fixedeffectsMM)
   colnames(fixedeffectsS) = c("beta","SEbeta","tval","p-value")
   colnames(fixedeffectsMM) = c("beta","SEbeta","tval","p-value")
-  return(list(fixedeffectsS=fixedeffectsS,fixedeffectsMM=fixedeffectsMM,theta=theta,w=w,dis=MD))
+  return(list(fixedeffectsS=fixedeffectsS,fixedeffectsMM=fixedeffectsMM,summarythetaS=summarythetaS,w=w,dis=MD))
 }
