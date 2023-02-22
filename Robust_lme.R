@@ -145,7 +145,7 @@ Roblme = function(Ymat,X,Z,E=NULL,L=NULL,rho ="t-biweight",r =0.5,arp=0.01,rhoMM
     tol = max(diffbeta, difftheta)
     iter = iter + 1
   }
-  
+  iterS=iter
   termtXX = matrix(0,nrow=length(beta),ncol=length(beta))
   for(i in 1:n){
     termtXX = termtXX+t(X[[i]])%*%solve(V)%*%X[[i]]
@@ -217,6 +217,7 @@ Roblme = function(Ymat,X,Z,E=NULL,L=NULL,rho ="t-biweight",r =0.5,arp=0.01,rhoMM
       tol = norm(beta - betaold,type="F")
       iter = iter + 1
     }
+    iterM=iter
     termtXX = matrix(0,nrow=length(beta),ncol=length(beta))
     for(i in 1:n){
       termtXX = termtXX+t(X[[i]])%*%solve(V)%*%X[[i]]
@@ -239,11 +240,11 @@ Roblme = function(Ymat,X,Z,E=NULL,L=NULL,rho ="t-biweight",r =0.5,arp=0.01,rhoMM
   fixedeffectsS=cbind(betaS,SEbetaS,tvalS,pvalueS)
   fixedeffectsMM=cbind(betaMM,SEbetaMM,tvalMM,pvalueMM)
   
-  summarythetaS = cbind(theta,SEthetaS,tvalthetaS,pvaluethetaS)
+  summarythetaS = cbind(thetaS,SEthetaS,tvalthetaS,pvaluethetaS)
   
   fixedeffectsS = data.frame(fixedeffectsS)
   fixedeffectsMM = data.frame(fixedeffectsMM)
   colnames(fixedeffectsS) = c("beta","SEbeta","tval","p-value")
   colnames(fixedeffectsMM) = c("beta","SEbeta","tval","p-value")
-  return(list(fixedeffectsS=fixedeffectsS,fixedeffectsMM=fixedeffectsMM,summarythetaS=summarythetaS,w=w,dis=MD))
+  return(list(fixedeffectsS=fixedeffectsS,fixedeffectsMM=fixedeffectsMM,summarythetaS=summarythetaS,w=w,dis=MD,iterS=iterS,iterM=iterM))
 }
