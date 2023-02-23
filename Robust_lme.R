@@ -145,6 +145,28 @@ Roblme = function(Ymat,X,Z,E=NULL,L=NULL,rho ="t-biweight",r =0.5,arp=0.01,rhoMM
     tol = max(diffbeta, difftheta)
     iter = iter + 1
   }
+  
+  MD=numeric(n)
+  for (i in 1:n){
+    y = Ymat[i,]
+    mu = X[[i]]%*%beta
+    MD[i] = mahalanobis(y,center = mu,cov = V) # Note MD=d^2!
+  }
+  
+  # determining scaling constant for MD
+  # for translated biweight
+  
+  objfuntranslated=function(s){
+    mean(biweightrhotranslated(sqrt(MD)/s,m0,c0))-expecrhotranslated(k,m0,c0)
+  }
+  s = uniroot(f=objfuntranslated,c(0.01,100))$root
+  theta = theta*s^2
+  
+  V = 0
+  for (j in 1:lZ) {
+    V = V + (theta[j] * L[,  , j])
+  }
+  
   iterS=iter
   termtXX = matrix(0,nrow=length(beta),ncol=length(beta))
   for(i in 1:n){
@@ -157,6 +179,8 @@ Roblme = function(Ymat,X,Z,E=NULL,L=NULL,rho ="t-biweight",r =0.5,arp=0.01,rhoMM
   for (j in 1:lZ) {
     vecL[,j] = as.vector(L[,  , j])
   }
+  
+  
   thetaS=theta
   term = solve(t(vecL) %*%(solve(V)%x%solve(V))%*%vecL)
   varthetaS = 2 * s1 *term  + s2 * thetaS%*%t(thetaS)
