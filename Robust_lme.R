@@ -84,6 +84,7 @@ Roblme = function(Ymat,X,Z,E=NULL,L=NULL,rho ="t-biweight",r =0.5,arp=0.01,rhoMM
   while ((iter <= maxiter) & (tol > eps)) {
     wold = w
     betaold  = beta
+    thetaold = theta
     Vold  = V
     ##############################################################################
     # Iteration step
@@ -140,8 +141,11 @@ Roblme = function(Ymat,X,Z,E=NULL,L=NULL,rho ="t-biweight",r =0.5,arp=0.01,rhoMM
       V = V + (theta[j] * L[,  , j])
     }
     ##############################################################################
-    diffbeta = norm(beta - betaold,type="F")
-    difftheta = norm(V - Vold,type="F")
+    #diffbeta = norm(beta - betaold,type="F")
+    #difftheta = norm(V - Vold,type="F")
+    diffbeta=max(abs(beta/betaold-1))
+    difftheta=max(abs(theta/thetaold-1))
+    
     tol = max(diffbeta, difftheta)
     iter = iter + 1
   }
@@ -238,7 +242,8 @@ Roblme = function(Ymat,X,Z,E=NULL,L=NULL,rho ="t-biweight",r =0.5,arp=0.01,rhoMM
       beta = solve(betamatterm)%*%betavecterm
       
       ##############################################################################
-      tol = norm(beta - betaold,type="F")
+      #tol = norm(beta - betaold,type="F")
+      tol=max(abs(beta/betaold-1))
       iter = iter + 1
     }
     iterM=iter
