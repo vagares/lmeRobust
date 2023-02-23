@@ -91,17 +91,7 @@ Roblme = function(Ymat,X,Z,E=NULL,L=NULL,rho ="t-biweight",r =0.5,arp=0.01,rhoMM
     ##############################################################################
     
     # Re-scaling Mahalanobis distances to satisfy S-constraint
-    # array for n Mahalanobis distances
-    MD=numeric(n)
-    for (i in 1:n){
-      y = Ymat[i,]
-      mu = X[[i]]%*%betaold
-      MD[i] = mahalanobis(y,center = mu,cov = Vold) # Note MD=d^2!
-    }
     
-    # determining scaling constant for MD
-    # for translated biweight
-
      objfuntranslated=function(s){
             mean(biweightrhotranslated(sqrt(MD)/s,m0,c0))-expecrhotranslated(k,m0,c0)
             }
@@ -195,7 +185,7 @@ Roblme = function(Ymat,X,Z,E=NULL,L=NULL,rho ="t-biweight",r =0.5,arp=0.01,rhoMM
   SEbetaS = sqrt(diag(varbetaS)/n)
   tvalS=betaS/SEbetaS
   pvalueS=2*(1-pnorm(abs(tvalS)))
-  
+  iterM=NULL
   if(is.null(rhoMM) ==FALSE) {
     objectf=function(c){
       1/constbetahat(k,c)-eff 
