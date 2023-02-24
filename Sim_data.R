@@ -67,46 +67,51 @@ data_gen = function(n=1000,k=2,cont,p,mue=0,se=1,mug=0,sg=1){
 }
 
 
-data_gen = function(n=1000,k=2,pe,pb,mue=0,mub=0,px,alpha){
+data_gen = function(n=1000,k=2,pe=0,pb=0,px=0,mec=0,mbc2=0,alpha=1){
   id =rep(1,n)
   X = list()
   m = rep(0,k)
   s = diag(k)
-  fc = rep(1,k)
-  sc = seq(0,k-1,1)
-  Z =  list(cbind(fc,sc))
+  x1 = rep(1,k)
+  x2 = seq(0,k-1,1)
+  Z =  list(cbind(x1,x2))
   for (i in (1:n)){
-    
-    X[[i]] <- cbind(fc,sc)
+    X[[i]] <- cbind(x1,x2)
   }
   Y = list()  
 
-  mg0 = rep(0,2)
-  sg0 = matrix(c(790,-8.5,-8.5,40),2,2)
-  mgc = c(0,mg)
-  me0 = 0
-  se0 = 1
+  sb0 = matrix(c(790,-8.5,-8.5,40),2,2)
+  mbc = c(0,mbc2)
+  sbc =  matrix(c(7.9,-0.085,-0.085,0.4),2,2)
+  sec = 0.5
+  
   nobi=0
   noe=0
   nox=0
   noei=0
   noxi=0
+  
   for (i in (1:n)){
     noeitemp=0
     noxitemp=0
-    if (runif(1) <= (1-pb)){b= rmvnorm(1, mean=mg0, sigma=sg0)}
-    else{b=rmvnorm(1, mean=mgc, sigma=sg0);nobi=nobi+1}
+    
+    if (runif(1) <= (1-pb)){b= rmvnorm(1, mean=rep(0,2), sigma=sb0)}
+    else{b=rmvnorm(1, mean=mbc, sigma=sbc);nobi=nobi+1}
+    
     eps = numeric(k)
     for (kk in (1:k)){
-      if (runif(1) <= (1-pe)){eps[kk] = rnorm(1, mean=me0, sd=se0)}
-      else{eps[kk] = rnorm(1, mean=me, sd=0.5);noe=noe+1;noeitemp=1}
+      if (runif(1) <= (1-pe)){eps[kk] = rnorm(1, mean=0, sd=20)}
+      else{eps[kk] = rnorm(1, mean=mec, sd=sec);noe=noe+1;noeitemp=1}
     }
+    
     for (r in (1:k)){
       if(runif(1) <= (1-px)){ X[[i]][r,2]= X[[i]][r,2]}
       else{X[[i]][r,2]= alpha*X[[i]][r,2];nox=nox+1;noxitemp=1}
-      }
+    }
+    
   beta = c(250,10)
   Y[[i]] =  X[[i]]%*%beta + Z[[1]]%*%as.vector(b) + eps
+  
   noei = noei + noeitemp
   noxi = noxi + noxitemp
   
