@@ -1,6 +1,10 @@
-# This script computes the constants involved in the limiting
-# covariances of the S-estimators as decsribed in Corollary 5
-# for the case y|X has a multivariate normal distribution
+# This script computes the constants involved in the limiting covariances
+# of the S-estimators. 
+# See, e.g., Theorem 3 in Rousseeuw & Yohai (1984), 
+# Corollary 5.1 in Lopuhaä (1989), 
+# or Corollary 9.2 in Lopuhaä, Gares & Ruiz-Gazen (2023).
+# Expectations are computed by means of the Gamma-function
+
 
 moment=function(m,k,c0){
   # computes the constrained expectation E|Z|^m{|z|<=c} 

@@ -1,18 +1,27 @@
-# This script prepares the setting for the simulation.
+# This script prepares the setting for the simulation for 
+# the MLE, S and MM estimators with ICM contamination
 # It sources the required R-scripts.
 # 
-# This script also sets the contamination scenarios.
-# It runs the simulation for that scenario.
-# 
+# The user first specifies the contamination scenarios.
+# The script runs the simulation for these scenarios using
+# the function MLESMM_estimates_MCG and data_gen_MCR
+#
 # After the simulation for a scenario has been completed
-# this script saves the results in .RData files 
-# containing a list MLESMM
+# this script saves the results in .RData files containing a list MLESMM
+
+# The .Rdata files are stored in designated subfolders
+# BEFORE running this script, first create subfolders
+# - Results_Uncontaminated
+# - Results_Epsilon_contamination
+# - Results_Random_Effect_contamination
+# - Results_X_contamination
+
 
 source("biweight_functions.R")
 source("asympt_norm_constants.R")
-source("Sim_data_MCG.R")
+source("function_data_gen_MCG.R")
 source("Robust_lme.R")
-source("Simulation_Estimates_model_MCG.R")
+source("function_MLESMM_estimates_MCG.R")
 
 library(robustbase)
 
@@ -27,22 +36,26 @@ library(robustbase)
 # theta3=sigma1^2
 # theta4=sigmaeps^2
 
-################################################
-# SCENARIO: - shift fixed at -80
-#           - pe 0, 0.01, .... ,0.10
-################################################
+pe=0.05
+pb=0.05
+px=0.05
+nrep=1
 
-pevec=seq(0,0.10,by=0.01)
-nrep=250
-
-# creating a dataframe that contains different contamination schemes
-# as rows
+# creating a dataframe that contains different contamination schemes as rows:
+# n number of individuals
+# k number of observations per individual
+# pe probability of having outlier in component epsilon_ij
+# pb probability of having outlier in vector of random effects b
+# px probability of having outlier in component x_ij in X
+# mec shift in the mean of component epsilon_ij
+# mbc2 shift in the mean of random effect b2
+# alphac multiplication factor in component x_ij in X
 
 scenarios=NULL
-for (i in 1:length(pevec)){
-  scenarios=rbind(scenarios,c(nrep,200,4,pevec[i],0,0,-80,0,1))
-  #scenarios[i,]=c(nrep,200,4,pevec[i],0,0,-80,0,1)
-}
+scenarios=rbind(scenarios,c(nrep,200,4,pe,0,0,-80,0,1))
+scenarios=rbind(scenarios,c(nrep,200,4,0,pb,0,0,-25,1))
+scenarios=rbind(scenarios,c(nrep,200,4,0,0,px,0,0,10))
+
 colnames(scenarios)=c("nrep","n","k","pe","pb","px","mec","mbc2","alphac")
 scenarios=data.frame(scenarios)
 
@@ -50,41 +63,72 @@ set.seed(11131957)
 
 for (i in (1:nrow(scenarios))){
   nrep=scenarios[i,1]
-  n=scenarios[i,2]
-  k=scenarios[i,3]
-  pe=scenarios[i,4]
-  pb=scenarios[i,5]
-  px=scenarios[i,6]
-  mec=scenarios[i,7]
-  mbc2=scenarios[i,8]
-  alphac=scenarios[i,9]
-  
-  MLESMM=MLESMM_estimates_MCG(nrep=nrep,n=n,k=k,pe=pe,pb=pb,px=px,
-                       mec=mec,mbc2=mbc2,alphac=alphac)
+  nsample=scenarios[i,2]
+  ksample=scenarios[i,3]
+  pesample=scenarios[i,4]
+  pbsample=scenarios[i,5]
+  pxsample=scenarios[i,6]
+  mecsample=scenarios[i,7]
+  mbc2sample=scenarios[i,8]
+  alphacsample=scenarios[i,9]
+
+  MLESMM=MLESMM_estimates_MCG(nrep=nrep,n=nsample,k=ksample,
+                              pe=pesample,pb=pbsample,px=pxsample,
+                              mec=mecsample,mbc2=mbc2sample,
+                              alphac=alphacsample)
+
   if (pe>0){
-     flname=paste0("./Results_Epsilon_contamination/","MLESMM","_",
-                   "nrep=",nrep,"_",
-                   "n=",n,"_",
-                   "k=",k,"_",
-                   "pe=",pe,"_",
-                   "pb=",pb,"_",
-                   "px=",px,"_",
-                   "mec=",mec,"_",
-                   "mbc2=",mbc2,"_",
-                   "alphac=",alphac,".RData")}else{
-      flname=paste0("./Results_Uncontaminated/","MLESMM","_",
-                    "nrep=",nrep,"_",
-                    "n=",n,"_",
-                    "k=",k,"_",
-                    "pe=",pe,"_",
-                    "pb=",pb,"_",
-                    "px=",px,"_",
-                    "mec=",mec,"_",
-                    "mbc2=",mbc2,"_",
-                    "alphac=",alphac,".RData")}
+  flname=paste0("./Results_Epsilon_contamination/","MLESMM","_",
+                "nrep=",nrep,"_",
+                "n=",nsample,"_",
+                "k=",ksample,"_",
+                "pe=",pesample,"_",
+                "pb=",pbsample,"_",
+                "px=",pxsample,"_",
+                "mec=",mecsample,"_",
+                "mbc2=",mbc2sample,"_",
+                "alphac=",alphacsample,"_",
+                ".RData")}else{
+  flname=paste0("./Results_Uncontaminated/","MLESMM","_",
+                "nrep=",nrep,"_",
+                "n=",nsample,"_",
+                "k=",ksample,"_",
+                "pe=",pesample,"_",
+                "pb=",pbsample,"_",
+                "px=",pxsample,"_",
+                "mec=",mecsample,"_",
+                "mbc2=",mbc2sample,"_",
+                "alphac=",alphacsample,"_",
+                ".RData")}
+  
+  if (pb>0){
+    flname=paste0("./Results_Random_Effect_contamination/","MLESMM","_",
+                  "nrep=",nrep,"_",
+                  "n=",nsample,"_",
+                  "k=",ksample,"_",
+                  "pe=",pesample,"_",
+                  "pb=",pbsample,"_",
+                  "px=",pxsample,"_",
+                  "mec=",mecsample,"_",
+                  "mbc2=",mbc2sample,"_",
+                  "alphac=",alphacsample,"_",
+                  ".RData")}
+                    
+  if (px>0){
+    flname=paste0("./Results_X_contamination/","MLESMM","_",
+                  "nrep=",nrep,"_",
+                  "n=",nsample,"_",
+                  "k=",ksample,"_",
+                  "pe=",pesample,"_",
+                  "pb=",pbsample,"_",
+                  "px=",pxsample,"_",
+                  "mec=",mecsample,"_",
+                  "mbc2=",mbc2sample,"_",
+                  "alphac=",alphacsample,"_",
+                  ".RData")}
   
   save(MLESMM,file=flname)
-  
-}
+
+  }
 
 

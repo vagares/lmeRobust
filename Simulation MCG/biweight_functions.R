@@ -1,3 +1,7 @@
+# This script defines the biweight and the translated biweight 
+# rho functions and their derivatives needed in solving 
+# the fixed point equations satisfied by the S-estimator
+
 biweightrho=function(y,c0){
   # This is Tukey's biweight rho function
   ifelse(abs(y)<=c0,y^2/2-y^4/(2*c0^2)+y^6/(6*c0^4),c0^2/6)

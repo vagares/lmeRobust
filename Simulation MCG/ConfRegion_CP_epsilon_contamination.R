@@ -3,9 +3,26 @@
 # Simulation_setting_model_MCG.R
 
 # The script extracts the information from the .RData files
-# corresponding to the different setups in dataframe scenarios
-# and produces coverage probabilities for the confidence REGIONS
-# of the vectors of estimators
+# corresponding to the different setups in dataframe 
+# scenarios_CP and produces graph of the coverage probabilities
+
+#######################################################################
+# creating dataframe containing different contamination schemes as rows
+# SCENARIO 1: - -80 fixed
+#             - pe 0, 0.01, ... , 0.10
+#             - 250 repetitions
+
+pevec=seq(0,0.10,by=0.01)
+nrep=250
+scenarios_CP=NULL
+for (i in 1:length(pevec)){
+  scenarios_CP=rbind(scenarios_CP,c(nrep,200,4,pevec[i],0,0,-80,0,1))
+}
+colnames(scenarios_CP)=c("nrep","n","k","pe","pb","px","mec","mbc2","alphac")
+
+# Sets scenarios equal to scenarios_CP
+# scenarios is used below to extract the .RData files
+scenarios=data.frame(scenarios_CP)
 
 
 #######################################################
@@ -17,7 +34,8 @@ CPCR_MLESMMtheta=NULL
 
 for (i in 1:nrow(scenarios)){
 if (scenarios$pe[i]>0){
-    flname=paste0("./Results_Epsilon_contamination/","MLESMM","_",
+  #    flname=paste0("./Results_Epsilon_contamination/","MLESMM","_",
+  flname=paste0("./Results_Epsilon_contamination/EpsilonCCM/","MLESMM","_",
                 "nrep=",scenarios$nrep[i],"_",
                 "n=",scenarios$n[i],"_",
                 "k=",scenarios$k[i],"_",
@@ -118,8 +136,7 @@ CPCR_MLESMMbeta=data.frame(CPCR_MLESMMbeta)
 CPCR_MLESMMbeta[,1]=factor(CPCR_MLESMMbeta[,1],
                          levels=1:3,labels=c("MLE","S","MM"))
 CPCR_MLESMMbeta[,2]=factor(CPCR_MLESMMbeta[,2],levels=pevec,
-                             labels = c("00","01","02","03","04","05",
-                                        "06","07","08","09","10"))
+                           labels = as.character(pevec*100))
 
 # Setting the first two columns of CPCR_MLESMMtheta to factors
 colnames(CPCR_MLESMMtheta)=c("Estimator","pe","CPtheta")
@@ -127,8 +144,7 @@ CPCR_MLESMMtheta=data.frame(CPCR_MLESMMtheta)
 CPCR_MLESMMtheta[,1]=factor(CPCR_MLESMMtheta[,1],
                            levels=1:2,labels=c("MLE","S"))
 CPCR_MLESMMtheta[,2]=factor(CPCR_MLESMMtheta[,2],levels=pevec,
-                           labels = c("00","01","02","03","04","05",
-                                      "06","07","08","09","10"))
+                            labels = as.character(pevec*100))
 
 ################################################################
 # Preparing graphs

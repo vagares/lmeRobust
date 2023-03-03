@@ -3,8 +3,27 @@
 # Simulation_setting_model_MCG.R
 
 # The script extracts the information from the .RData files
-# corresponding to the different setups in dataframe scenarios
-# and produces boxplots of the estimators
+# corresponding to the different setups in dataframe 
+# scenarios_boxplot and produces boxplots of the estimators
+
+#######################################################################
+# creating dataframe containing different contamination schemes as rows
+# SCENARIO 1: - -80 fixed
+#             - pe 0, 0.01, ... , 0.10
+#             - 250 repetitions
+
+pevec=seq(0,0.10,by=0.01)
+nrep=250
+scenarios_boxplot=NULL
+for (i in 1:length(pevec)){
+  scenarios_boxplot=rbind(scenarios_boxplot,c(nrep,200,4,pevec[i],0,0,-80,0,1))
+}
+colnames(scenarios_boxplot)=c("nrep","n","k","pe","pb","px","mec","mbc2","alphac")
+
+# Sets scenarios equal to scenarios_boxplot
+# scenarios is used below to extract the .RData files
+scenarios=data.frame(scenarios_boxplot)
+
 
 #######################################################
 # Extracting the information for beta from .Rdata files
@@ -16,8 +35,9 @@ boxplotMLESMM_outlier=NULL
 
 for (i in 1:nrow(scenarios)){
 if (scenarios$pe[i]>0){
-    flname=paste0("./Results_Epsilon_contamination/","MLESMM","_",
-                "nrep=",scenarios$nrep[i],"_",
+#    flname=paste0("./Results_Epsilon_contamination/","MLESMM","_",
+   flname=paste0("./Results_Epsilon_contamination/EpsilonCCM/","MLESMM","_",
+  "nrep=",scenarios$nrep[i],"_",
                 "n=",scenarios$n[i],"_",
                 "k=",scenarios$k[i],"_",
                 "pe=",scenarios$pe[i],"_",
@@ -98,8 +118,7 @@ boxplotMLESMMbeta=data.frame(boxplotMLESMMbeta)
 boxplotMLESMMbeta[,1]=factor(boxplotMLESMMbeta[,1],
                              levels=1:3,labels=c("MLE","S","MM"))
 boxplotMLESMMbeta[,2]=factor(boxplotMLESMMbeta[,2],levels=pevec,
-                             labels = c("00","01","02","03","04","05",
-                                        "06","07","08","09","10"))
+                             labels = as.character(pevec*100))
 
 # Setting the first two of boxplotMLESMMtheta columns to factors
 colnames(boxplotMLESMMtheta)=c("Estimator","pe",
@@ -108,22 +127,21 @@ boxplotMLESMMtheta=data.frame(boxplotMLESMMtheta)
 boxplotMLESMMtheta[,1]=factor(boxplotMLESMMtheta[,1],
                              levels=1:3,labels=c("MLE","S","MM"))
 boxplotMLESMMtheta[,2]=factor(boxplotMLESMMtheta[,2],levels=pevec,
-                             labels = c("00","01","02","03","04","05",
-                                        "06","07","08","09","10"))
+                              labels = as.character(pevec*100))
 
 # Setting the first two of boxplotMLESMM_outlier columns to factors
 colnames(boxplotMLESMM_outlier)=c("nsample","pe",
                                   "nobi","noei","noxi","noe","nox")
 boxplotMLESMM_outlier=data.frame(boxplotMLESMM_outlier)
 boxplotMLESMM_outlier[,2]=factor(boxplotMLESMM_outlier[,2],levels=pevec,
-                                 labels = c("00","01","02","03","04","05",
-                                            "06","07","08","09","10"))
+                                 labels = as.character(pevec*100))
 
 ################################################################
 # Preparing graphs
 
 # Boxplots using ggplot2
 library(ggplot2)
+library(gridExtra)
 
 # Boxplots for beta
 plotbeta1=ggplot(boxplotMLESMMbeta,aes(x=pe,y=beta1,fill=Estimator))+
@@ -137,8 +155,6 @@ plotbeta2=ggplot(boxplotMLESMMbeta,aes(x=pe,y=beta2,fill=Estimator))+
   xlab("Percentage of contamination")+
   geom_hline(yintercept=10,lty=1,col="orange")
 
-
-library(gridExtra)
 grid.arrange(plotbeta1,plotbeta2,nrow=1)
 
 ################################################################
@@ -166,7 +182,6 @@ plottheta4=ggplot(boxplotMLESMMtheta,aes(x=pe,y=theta4,fill=Estimator))+
 
 grid.arrange(plottheta1,plottheta2,plottheta3,plottheta4,
              nrow=2,ncol=2)
-
 
 
 grid.arrange(plotbeta1,plottheta1,plottheta2,

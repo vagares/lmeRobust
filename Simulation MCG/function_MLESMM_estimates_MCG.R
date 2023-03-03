@@ -1,17 +1,28 @@
-# This script contains the code for the function MLESMM_estimates_MCG
-# which generates data and runs Roblme for MLE, S and MM
-# and saves the estimates, asymptotic variances, and number of outliers  
-# in a list
+# This script contains the code for the function MLESMM_estimates_MCG. 
+
+# This function generates datasets according to the model 
+# in Mason, Cantoni & Ghisletta (2021) with contamination generated 
+# according to the ICM (independent contamination model or 
+# cellwise contamination) in the measurement error and 
+# according to CCM (central contamination model) in the random effects.
+# In addition, the function also generates contamination in 
+# the design matrix of the fixed effects according to ICM.
+
+# For each generated dataset the function also computes the 
+# MLE, S and MM estimates with the function Robmle 
+# and saves the estimates, the estimated asymptotic variances 
+# and the number of outliers  in a list MLESMM
+
+source("Robust_lme.R")
 
 library(mvtnorm)    # needed for rmvnorm in function data_gen_MCG
 library(robustbase) # needed for covMcd in function Robust_lme
 
-MLESMM_estimates_MCG=function(nrep=1,nsample=200,ksample=4,
-                              pesample=0,pbsample=0,pxsample=0,
-                              mecsample=0,mbc2sample=0,alphacsample=1){
+MLESMM_estimates_MCG=function(nrep=1,n=200,k=4,pe=0,pb=0,px=0,
+                              mec=0,mbc2=0,alphac=1){
 
 lbeta=2
-ltheta=4
+ltheta=k
 
 betahatmatMLE=matrix(0,nrow=nrep,ncol=lbeta)
 betahatmatS=matrix(0,nrow=nrep,ncol=lbeta)
@@ -34,9 +45,9 @@ no_outliers=matrix(0,nrow=nrep,ncol=5)
 for (m in 1:nrep){
   # generating dataset
   # settings for data_gen_MCG are taken from settings MLESMM_estimates_MCG
-  dat = data_gen_MCG(n=nsample,k=ksample,
-                     pe=pesample,pb=pbsample,px=pxsample,
-                     mec=mecsample,mbc2=mbc2sample,alphac = alphacsample)
+  dat = data_gen_MCG(n=n,k=k,
+                     pe=pe,pb=pb,px=px,
+                     mec=mec,mbc2=mbc2,alphac = alphac)
   
   # Roblme for MLE
   summaryMLE = Roblme(dat$Y,dat$X,dat$Z,E=NULL,L=dat$L,

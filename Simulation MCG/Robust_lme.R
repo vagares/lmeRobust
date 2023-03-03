@@ -1,3 +1,8 @@
+# This script contains the code for the function Roblme. 
+# This function computes the MLE, the S- and MM-estimates 
+# for a single dataset, such as the ones in the output of
+# the functions data_gen_MCG or data_gen_MCG_contCCM.
+
 library(robustbase) # needed for covMcd
 
 source("biweight_functions.R")
@@ -8,11 +13,9 @@ Roblme = function(Ymat,X,Z,E=NULL,L=NULL,rho ="t-biweight",r =0.5,arp=0.01,rhoMM
   # X: a list X[[i]] i = 1...n design matrix fixed effects
   # Z: a list Z[[z]] design matrices random effects
   # E: variance of error (default is identity)
-  # L: list of matrices in linear decomposition of V 
-  #    (including error variance)
+  # L: list of matrices in linear decomposition of V (including error variance)
   
-  # rho: rho function for the S estimation 
-  #      (t-biweight, biweight or MLE)
+  # rho: rho function for the S estimation (t-biweight, biweight or MLE)
   # r: breakdown point
   # arp: asymptotic rejection rate
   # rhoMM: rho function for the MM estimation (biweight)

@@ -3,9 +3,28 @@
 # Simulation_setting_model_MCG.R
 
 # The script extracts the information from the .RData files
-# corresponding to the different setups in dataframe scenarios
-# and produces coverage probabilities for the confidence INTERVALS
-# of the estimators
+# corresponding to the different setups in dataframe 
+# scenarios_CI and produces graph of the coverage probabilities
+
+#######################################################################
+# creating dataframe containing different contamination schemes as rows
+# SCENARIO 1: - -80 fixed
+#             - pe 0, 0.01, ... , 0.10
+#             - 250 repetitions
+
+pevec=seq(0,0.10,by=0.01)
+nrep=250
+scenarios_CI=NULL
+for (i in 1:length(pevec)){
+  scenarios_CI=rbind(scenarios_CI,c(nrep,200,4,pevec[i],0,0,-80,0,1))
+}
+colnames(scenarios_CI)=c("nrep","n","k","pe","pb","px","mec","mbc2","alphac")
+
+# Sets scenarios equal to scenarios_CI
+# scenarios is used below to extract the .RData files
+scenarios=data.frame(scenarios_CI)
+
+
 
 
 #######################################################
@@ -22,7 +41,8 @@ CP_MLESMMtheta=NULL
 
 for (i in 1:nrow(scenarios)){
 if (scenarios$pe[i]>0){
-    flname=paste0("./Results_Epsilon_contamination/","MLESMM","_",
+  #    flname=paste0("./Results_Epsilon_contamination/","MLESMM","_",
+  flname=paste0("./Results_Epsilon_contamination/EpsilonCCM/","MLESMM","_",
                 "nrep=",scenarios$nrep[i],"_",
                 "n=",scenarios$n[i],"_",
                 "k=",scenarios$k[i],"_",
@@ -238,8 +258,7 @@ CI_MLESMMbeta=data.frame(CI_MLESMMbeta)
 CI_MLESMMbeta[,1]=factor(CI_MLESMMbeta[,1],
                          levels=1:3,labels=c("MLE","S","MM"))
 CI_MLESMMbeta[,2]=factor(CI_MLESMMbeta[,2],levels=pevec,
-                             labels = c("00","01","02","03","04","05",
-                                        "06","07","08","09","10"))
+                         labels = as.character(pevec*100))
 
 # Setting the first two columns of CICP_MLESMMbeta to factors
 colnames(CICP_MLESMMbeta)=c("Estimator","pe","CPindbeta1","CPindbeta2")
@@ -247,8 +266,7 @@ CICP_MLESMMbeta=data.frame(CICP_MLESMMbeta)
 CICP_MLESMMbeta[,1]=factor(CICP_MLESMMbeta[,1],
                          levels=1:3,labels=c("MLE","S","MM"))
 CICP_MLESMMbeta[,2]=factor(CICP_MLESMMbeta[,2],levels=pevec,
-                         labels = c("00","01","02","03","04","05",
-                                    "06","07","08","09","10"))
+                           labels = as.character(pevec*100))
 
 # Setting the first two columns of CP_MLESMMbeta to factors
 colnames(CP_MLESMMbeta)=c("Estimator","pe","CovPrbeta1","CovPrbeta2")
@@ -256,8 +274,7 @@ CP_MLESMMbeta=data.frame(CP_MLESMMbeta)
 CP_MLESMMbeta[,1]=factor(CP_MLESMMbeta[,1],
                            levels=1:3,labels=c("MLE","S","MM"))
 CP_MLESMMbeta[,2]=factor(CP_MLESMMbeta[,2],levels=pevec,
-                           labels = c("00","01","02","03","04","05",
-                                      "06","07","08","09","10"))
+                         labels = as.character(pevec*100))
 
 nrow(CI_MLESMMbeta)
 nrow(CICP_MLESMMbeta)
@@ -273,8 +290,7 @@ CI_MLESMMtheta=data.frame(CI_MLESMMtheta)
 CI_MLESMMtheta[,1]=factor(CI_MLESMMtheta[,1],
                          levels=1:2,labels=c("MLE","S"))
 CI_MLESMMtheta[,2]=factor(CI_MLESMMtheta[,2],levels=pevec,
-                         labels = c("00","01","02","03","04","05",
-                                    "06","07","08","09","10"))
+                          labels = as.character(pevec*100))
 
 # Setting the first two columns of CICP_MLESMMtheta to factors
 colnames(CICP_MLESMMtheta)=c("Estimator","pe","CPindtheta1","CPindtheta2","CPindtheta3","CPindtheta4")
@@ -282,8 +298,7 @@ CICP_MLESMMtheta=data.frame(CICP_MLESMMtheta)
 CICP_MLESMMtheta[,1]=factor(CICP_MLESMMtheta[,1],
                            levels=1:2,labels=c("MLE","S"))
 CICP_MLESMMtheta[,2]=factor(CICP_MLESMMtheta[,2],levels=pevec,
-                           labels = c("00","01","02","03","04","05",
-                                      "06","07","08","09","10"))
+                            labels = as.character(pevec*100))
 
 # Setting the first two columns of CP_MLESMMtheta to factors
 colnames(CP_MLESMMtheta)=c("Estimator","pe","CovPrtheta1","CovPrtheta2","CovPrtheta3","CovPrtheta4")
@@ -291,8 +306,7 @@ CP_MLESMMtheta=data.frame(CP_MLESMMtheta)
 CP_MLESMMtheta[,1]=factor(CP_MLESMMtheta[,1],
                          levels=1:2,labels=c("MLE","S"))
 CP_MLESMMtheta[,2]=factor(CP_MLESMMtheta[,2],levels=pevec,
-                         labels = c("00","01","02","03","04","05",
-                                    "06","07","08","09","10"))
+                          labels = as.character(pevec*100))
 
 nrow(CI_MLESMMtheta)
 nrow(CICP_MLESMMtheta)
