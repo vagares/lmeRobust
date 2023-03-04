@@ -135,7 +135,6 @@ data_gen_MCG_contCCM = function(n=200,k=4,pe=0,pb=0,px=0,mec=0,mbc2=0,alphac=1,n
   return(list(Y=Ymat,X=X,Z=Z,L=Llist,
               pe=pe,pb=pb,px=px,
               mec=mec,mbc2=mbc2,alphac=alphac,
-              nobi=nobi,noe=noe,nox=nox,noei=noei,noxi=noxi,
-              no=no))
+              noei=noei,noe=noe,nobi=nobi,noxi=noxi,nox=nox))
 }
 

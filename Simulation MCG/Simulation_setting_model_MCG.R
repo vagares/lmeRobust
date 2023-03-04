@@ -77,7 +77,7 @@ for (i in (1:nrow(scenarios))){
                               mec=mecsample,mbc2=mbc2sample,
                               alphac=alphacsample)
 
-  if (pe>0){
+  if (pesample>0){
   flname=paste0("./Results_Epsilon_contamination/","MLESMM","_",
                 "nrep=",nrep,"_",
                 "n=",nsample,"_",
@@ -101,7 +101,7 @@ for (i in (1:nrow(scenarios))){
                 "alphac=",alphacsample,"_",
                 ".RData")}
   
-  if (pb>0){
+  if (pbsample>0){
     flname=paste0("./Results_Random_Effect_contamination/","MLESMM","_",
                   "nrep=",nrep,"_",
                   "n=",nsample,"_",
@@ -114,7 +114,7 @@ for (i in (1:nrow(scenarios))){
                   "alphac=",alphacsample,"_",
                   ".RData")}
                     
-  if (px>0){
+  if (pxsample>0){
     flname=paste0("./Results_X_contamination/","MLESMM","_",
                   "nrep=",nrep,"_",
                   "n=",nsample,"_",

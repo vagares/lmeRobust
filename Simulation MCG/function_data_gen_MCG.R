@@ -106,6 +106,6 @@ data_gen_MCG = function(n=200,k=4,pe=0,pb=0,px=0,mec=0,mbc2=0,alphac=1){
   return(list(Y=Ymat,X=X,Z=Z,L=Llist,
               pe=pe,pb=pb,px=px,
               mec=mec,mbc2=mbc2,alphac=alphac,
-              nobi=nobi,noe=noe,nox=nox,noei=noei,noxi=noxi))
+              noei=noei,noe=noe,nobi=nobi,noxi=noxi,nox=nox))
 }
 

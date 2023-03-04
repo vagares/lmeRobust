@@ -79,7 +79,7 @@ for (i in (1:nrow(scenarios))){
                        mec=mecsample,mbc2=mbc2sample,
                        alphac=alphacsample,no=nosample)
   
-  if (pe>0){
+  if (pesample>0){
      flname=paste0("./Results_Epsilon_contamination/EpsilonCCM/","MLESMM_CCM","_",
                    "nrep=",nrep,"_",
                    "n=",nsample,"_",
@@ -105,7 +105,7 @@ for (i in (1:nrow(scenarios))){
                     "no=",nosample,
                     ".RData")}
   
-  if (pb>0){
+  if (pbsample>0){
     flname=paste0("./Results_Random_Effect_contamination/RandomEffectCCM/","MLESMM_CCM","_",
                   "nrep=",nrep,"_",
                   "n=",nsample,"_",
@@ -119,7 +119,7 @@ for (i in (1:nrow(scenarios))){
                   "no=",nosample,
                   ".RData")}
   
-  if (px>0){
+  if (pxsample>0){
     flname=paste0("./Results_X_contamination/XCCM/","MLESMM_CCM","_",
                   "nrep=",nrep,"_",
                   "n=",nsample,"_",
