@@ -36,9 +36,9 @@ for (cs in 3:3){
   # 3 different contamination scenarios 
   # ICM and CCM with randcont 0/1, Xa=TRUE/FALSE,Xshiftall=TRUE/FALSE
   
-  if (cs==1) {CCMind=FALSE;randcont=1;Xa=FALSE} # value of randcont has no influence
-  if (cs==2) {CCMind=TRUE;randcont=1;Xa=FALSE}
-  if (cs==3) {CCMind=TRUE;randcont=0;Xa=FALSE}
+  if (cs==1) {CCMind=FALSE;randcont=1;Xa=FALSE;Xshiftall=FALSE} # value of randcont has no influence
+  if (cs==2) {CCMind=TRUE;randcont=1;Xa=FALSE;Xshiftall=FALSE}
+  if (cs==3) {CCMind=TRUE;randcont=0;Xa=FALSE;Xshiftall=FALSE}
   if (cs==4) {CCMind=TRUE;randcont=1;Xa=TRUE;Xshiftall=FALSE}
   if (cs==5) {CCMind=TRUE;randcont=1;Xa=TRUE;Xshiftall=TRUE}
     # ONLY pevec varying
