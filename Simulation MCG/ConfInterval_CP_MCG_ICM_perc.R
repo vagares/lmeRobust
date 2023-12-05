@@ -11,7 +11,7 @@
 
 source("scenarios_MCG_simulation.R")
 
-scenarios_CI=scenarios[(scenarios$mec==-80)&(scenarios$CCMind==0),]
+scenarios_CI=scenarios[(scenarios$mec==-40)&(scenarios$CCMind==0),]
 
 if (max(scenarios_CI$pe)!=0){
   pname="pe";

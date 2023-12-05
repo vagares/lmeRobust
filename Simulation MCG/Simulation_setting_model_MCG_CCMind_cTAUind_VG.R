@@ -33,10 +33,10 @@ library(lava)
 
 source("biweight_functions.R")
 source("asympt_norm_constants.R")
-source("function_data_gen_MCG_CCMind.R")
+source("function_data_gen_MCG_CCMind_VG.R")
 source("Robust_lme.R")
-source("function_MLESMMcTAUind_estimates_MCG_CCMind_comparaison.R")
-source("scenarios_MCG_simulation.R")
+source("function_MLESMMcTAUind_estimates_MCG_CCMind_VG.R")
+source("scenarios_MCG_simulation_VG.R")
 
 
 # Information for ourselves
@@ -72,16 +72,19 @@ for (i in (1:nrow(scenarios))){
   rcsample=scenarios[i,10]
   cTAUindsample=as.logical(scenarios[i,11])
   CCMindsample=as.logical(scenarios[i,12])
+  Xasample=as.logical(scenarios[i,13])
+  Xshiftallsample=as.logical(scenarios[i,14])
+  muxsample=scenarios[i,15]
   
   # Setting the filename depending on yes/no cTAU and yes/no CCM
   if (cTAUindsample==FALSE){
     if (CCMindsample==FALSE){
     flnameEst="MLESMM_ICM"}else{
-      flnameEst="MLESMM_CCM"}
+      if(Xasample==TRUE){if (Xshiftallsample==TRUE){flnameEst="MLESMM_CCM_Xaall"}else{flnameEst="MLESMM_CCM_Xa"} }else{flnameEst="MLESMM_CCM_Xf"}}
   }else{
     if (CCMindsample==FALSE){
       flnameEst="MLESMMcTAU_ICM"}else{
-        flnameEst="MLESMMcTAU_CCM"}
+        if(Xasample==TRUE){if (Xshiftallsample==TRUE){flnameEst="MLESMMcTAU_CCM_Xaall"}else{flnameEst="MLESMMcTAU_CCM_Xa"} }else{flnameEst="MLESMMcTAU_CCM_Xf"}}
       }
 
   MLESMMcTAUind=MLESMMcTAUind_estimates_MCG_CCMind(nrep=nrep,n=nsample,k=ksample,
@@ -89,7 +92,7 @@ for (i in (1:nrow(scenarios))){
                                       mec=mecsample,mbc2=mbc2sample,
                                       alphac=alphacsample,
                                       randcont=rcsample,
-                                      cTAUind=cTAUindsample,CCMind=CCMindsample)
+                                      cTAUind=cTAUindsample,CCMind=CCMindsample,Xa=Xasample,Xshiftall=Xshiftallsample,mux=muxsample)
   
   if ((pesample==0)&
       (pbsample==0)&
@@ -136,7 +139,7 @@ for (i in (1:nrow(scenarios))){
                   ".RData")}
   
   if (pxsample>0){
-    flname=paste0("./Results_X_contamination/",flnameEst,"_",
+    if(Xasample==FALSE){flname=paste0("./Results_X_contamination/",flnameEst,"_",
                   "nrep=",nrep,"_",
                   "n=",nsample,"_",
                   "k=",ksample,"_",
@@ -147,7 +150,22 @@ for (i in (1:nrow(scenarios))){
                   "mbc2=",mbc2sample,"_",
                   "alphac=",alphacsample,"_",
                   "rc=",rcsample,
-                  ".RData")}
+                  ".RData")}else
+                  {
+                    flname=paste0("./Results_X_contamination/",flnameEst,"_",
+                                  "nrep=",nrep,"_",
+                                  "n=",nsample,"_",
+                                  "k=",ksample,"_",
+                                  "pe=",pesample,"_",
+                                  "pb=",pbsample,"_",
+                                  "px=",pxsample,"_",
+                                  "mec=",mecsample,"_",
+                                  "mbc2=",mbc2sample,"_",
+                                  "mux=",muxsample,"_",
+                                  "rc=",rcsample,
+                                  ".RData") 
+                    
+                  }}
   
 save(MLESMMcTAUind,file=flname)
 
