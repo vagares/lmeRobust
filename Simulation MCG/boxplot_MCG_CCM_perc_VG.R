@@ -8,10 +8,11 @@
 
 source("scenarios_MCG_simulation_VG.R")
 
-scenarios_boxplot=scenarios[(scenarios$mec==-160)&(scenarios$CCMind==1),]
+#scenarios_boxplot=scenarios[(scenarios$mec==-160)&(scenarios$CCMind==1),]
 #scenarios_boxplot=scenarios[(scenarios$mbc2==-50)&(scenarios$CCMind==1),]
 #scenarios_boxplot=scenarios[(scenarios$alphac==10)&(scenarios$CCMind==1),]
 #scenarios_boxplot=scenarios[(scenarios$mux==0.5)&(scenarios$CCMind==1),]
+scenarios_boxplot=scenarios[(scenarios$mec==-160)&(scenarios$CCMind==0),]
 
 if (max(scenarios_boxplot$pe)!=0){
   pname="pe";
