@@ -28,7 +28,7 @@ library(robustvarComp)  # needed for varComprob
 MLESMMcTAUind_estimates_MCG_CCMind=function(nrep=1,n=200,k=4,pe=0,pb=0,px=0,
                                   mec=0,mbc2=0,alphac=1,
                                   randcont=0,cTAUind=FALSE,CCMind=FALSE,
-                                  Xa=FALSE,Xshiftall=FALSE,mux=0){
+                                  Xa=FALSE,Xshiftall=FALSE,mux=0,Sclaudioind=FALSE){
 
 lbeta=2   # X has 2 columns
 ltheta=k
@@ -74,6 +74,11 @@ if (cTAUind==TRUE){
   thetahatmatcTAU=matrix(0,nrow=nrep,ncol=ltheta)
   asympvarbetacTAU=list()
   asympvarthetacTAU=list()
+  if (Sclaudioind == TRUE){
+    betahatmatSclaudio=matrix(0,nrow=nrep,ncol=lbeta)
+    thetahatmatSclaudio=matrix(0,nrow=nrep,ncol=ltheta)
+    asympvarbetaSclaudio=list()
+    asympvarthetaSclaudio=list()}
   } # END of data preparation for varComprob
 
 no_outliers=matrix(0,nrow=nrep,ncol=5)
@@ -124,6 +129,13 @@ for (m in 1:nrep){
     betahatmatcTAU[m,]=summarycTAU$beta
     thetahatmatcTAU[m,]=c(summarycTAU$eta[1],summarycTAU$eta[3],summarycTAU$eta[2],summarycTAU$eta0)
     asympvarbetacTAU[[m]]=summarycTAU$vcov.beta
+    if (Sclaudio == TRUE){
+    summarySclaudio=varComprob(y ~ 1 +  time, groups = groups, data = Dataset, varcov = K, control = varComprob.control(lower = c(0, 0, -Inf),), method = "S", psi = "bisquare") 
+    
+    betahatmatSclaudio[m,]=summarySclaudio$beta
+    thetahatmatSclaudio[m,]=c(summarySclaudio$eta[1],summarySclaudio$eta[3],summarySclaudio$eta[2],summarySclaudio$eta0)
+    asympvarbetaSclaudio[[m]]=summarySclaudio$vcov.beta
+    }
   }
   
   no_outliers[m,]=c(dat$nobi,dat$noei,dat$noxi,dat$noe,dat$nox)
@@ -158,12 +170,21 @@ cTAU[[2]]=asympvarbetacTAU
 cTAU[[3]]=thetahatmatcTAU
 cTAU[[4]]=matrix(0,nrow=k,ncol=k)
 names(cTAU)=c("beta","varbeta","theta","vartheta")
+if (Sclaudioind == TRUE){
+  Sclaudio=list()
+  Sclaudio[[1]]=betahatmatSclaudio
+  Sclaudio[[2]]=asympvarbetaSclaudio
+  Sclaudio[[3]]=thetahatmatSclaudio
+  Sclaudio[[4]]=matrix(0,nrow=k,ncol=k)
+  names(Sclaudio)=c("beta","varbeta","theta","vartheta")
+}
 }
 
 no_outliers=data.frame(no_outliers)
 names(no_outliers)=c("nobi","noei","noxi","noe","nox")
 
 if (cTAUind==TRUE){
+  if (Sclaudioind == FALSE){
 MLESMMcTAU=list()
 MLESMMcTAU[[1]]=MLE
 MLESMMcTAU[[2]]=Sest
@@ -172,13 +193,23 @@ MLESMMcTAU[[4]]=cTAU
 MLESMMcTAU[[5]]=no_outliers
 names(MLESMMcTAU)=c("MLE","S","MM","cTAU","no_outliers")
 return(MLESMMcTAU)
-}else{MLESMM=list()
-  MLESMM[[1]]=MLE
-  MLESMM[[2]]=Sest
-  MLESMM[[3]]=MM
-  MLESMM[[4]]=no_outliers
-  names(MLESMM)=c("MLE","S","MM","no_outliers")
-  return(MLESMM)
+}else{
+  MLESMMcTAU=list()
+  MLESMMcTAU[[1]]=MLE
+  MLESMMcTAU[[2]]=Sest
+  MLESMMcTAU[[3]]=MM
+  MLESMMcTAU[[4]]=cTAU
+  MLESMMcTAU[[5]]=Sclaudio
+  MLESMMcTAU[[6]]=no_outliers
+  names(MLESMMcTAU)=c("MLE","S","MM","cTAU","Sclaudio","no_outliers")
+  return(MLESMMcTAU)
+}}else{MLESMMcTAU=list()
+  MLESMMcTAU[[1]]=MLE
+  MLESMMcTAU[[2]]=Sest
+  MLESMMcTAU[[3]]=MM
+  MLESMMcTAU[[4]]=no_outliers
+  names(MLESMMcTAU)=c("MLE","S","MM","no_outliers")
+  return(MLESMMcTAU)
   }
 
 } # End of function MLESMMcTAUind_estimates_MCG_CCMind
