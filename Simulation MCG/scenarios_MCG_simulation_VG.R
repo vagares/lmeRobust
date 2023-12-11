@@ -29,7 +29,7 @@ muxvec=c(0.5,1,5,10)
 k=4       # dimension of y
 #k=8
 n=200     # sample size
-nrep=1  # number of repetitions
+nrep=250  # number of repetitions
 
 scenarios=NULL
 for (cs in 1:1){
