@@ -21,7 +21,7 @@ library(mvtnorm)
 # a vector of random effects 
 
 data_gen_MCG_CCMind = function(n=200,k=4,pe=0,pb=0,px=0,mec=0,mbc2=0,
-                               alphac=1,randcont=0,CCMind=FALSE,Xa=FALSE,Xshiftall=TRUE,mux=1){
+                               alphac=1,randcont=0,CCMind=FALSE,Xa=FALSE,mux=1){
   # n number of individuals
   # k number of observations per individual
   # pe probability of having outlier in component epsilon_ij
@@ -33,7 +33,6 @@ data_gen_MCG_CCMind = function(n=200,k=4,pe=0,pb=0,px=0,mec=0,mbc2=0,
   # randcont indicator about a random number (randcont=1) of outliers or a fixed number (randcont=0)
   # CCMind index for casewise contamination (TRUE) or independent contamination (FALSE)
   # Xa for fixed X2 (FALSE) or random (TRUE) follow a normal distribution with mean (0...0) and variance-covariance Ip
-  # Xshiftall contamination on all vector X2[i,] follow a normal distribution with mean (mux...mux) (TRUE) or X2[i,1] follow a normal distribution with mean mux (FALSE) 
   X = list()          # list of design matrices for each individual
   x1 = rep(1,k)       # first column of design matrix X
   x2 = seq(0,k-1,1)   # second column of design matrix X
@@ -107,12 +106,9 @@ data_gen_MCG_CCMind = function(n=200,k=4,pe=0,pb=0,px=0,mec=0,mbc2=0,
     # randomly selected being an outlier
       if(runif(1) <= (1-px)){ X[[i]][,2]= X[[i]][,2]}else{
         if (Xa== FALSE) {X[[i]][,2]= alphac*X[[i]][,2];
-        noxitemp=1}else {if (Xshiftall==TRUE){
-          X[[i]][,2]= as.vector(rmvnorm(1, mean=rep(mux,k), sigma=diag(1,k)));
         noxitemp=1}else {
-          X[[i]][,2]= X[[i]][,2];
-          X[[i]][1,2]= rnorm(1, mean=mux, sd=1);
-          noxitemp=1}}}
+          X[[i]][,2]= as.vector(rmvnorm(1, mean=rep(mux,k), sigma=diag(1,k)));
+        noxitemp=1}}
 
     # keeping track of number of case wise outliers
       noei = noei + noeitemp
@@ -190,8 +186,10 @@ data_gen_MCG_CCMind = function(n=200,k=4,pe=0,pb=0,px=0,mec=0,mbc2=0,
       # constructing components of x2 under contamination
       for (r in (1:k)){
         if(runif(1) <= (1-px)){ X[[i]][r,2]= X[[i]][r,2]}
-        else{X[[i]][r,2]= alphac*X[[i]][r,2];nox=nox+1;noxitemp=1}
-      }
+        else{if (Xa== FALSE) {X[[i]][r,2]= alphac*X[[i]][r,2];nox=nox+1;noxitemp=1}
+          else{
+          X[[i]][r,2]= rnorm(1, mean=mux, sd=1)}
+      } }
       # The reason to contaminate X after the construction of Y is to investigate the effect
       # of a "leverage point" on the estimators
 

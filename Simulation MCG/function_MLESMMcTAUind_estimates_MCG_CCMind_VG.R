@@ -28,7 +28,7 @@ library(robustvarComp)  # needed for varComprob
 MLESMMcTAUind_estimates_MCG_CCMind=function(nrep=1,n=200,k=4,pe=0,pb=0,px=0,
                                   mec=0,mbc2=0,alphac=1,
                                   randcont=0,cTAUind=FALSE,CCMind=FALSE,
-                                  Xa=FALSE,Xshiftall=FALSE,mux=0,Sclaudioind=FALSE){
+                                  Xa=FALSE,mux=0,Sclaudioind=FALSE){
 
 lbeta=2   # X has 2 columns
 ltheta=k
@@ -90,7 +90,7 @@ for (m in 1:nrep){
                      pe=pe,pb=pb,px=px,
                      mec=mec,mbc2=mbc2,alphac = alphac,
                      randcont=randcont,CCMind=CCMind,
-                     Xa=Xa,Xshiftall=Xshiftall,mux=mux)
+                     Xa=Xa,mux=mux)
   
   # Roblme for MLE
   summaryMLE = Roblme(dat$Y,dat$X,dat$Z,E=NULL,L=dat$L,

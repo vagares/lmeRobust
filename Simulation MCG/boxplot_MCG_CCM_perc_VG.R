@@ -56,9 +56,8 @@ for (i in 1:nrow(scenarios_boxplot)){
   cTAUindsample=as.logical(scenarios_boxplot[i,11])
   CCMindsample=as.logical(scenarios_boxplot[i,12])
   Xasample=as.logical(scenarios_boxplot[i,13])
-  Xshiftallsample=as.logical(scenarios_boxplot[i,14])
-  muxsample=scenarios_boxplot[i,15]
-  Sclaudiosample=as.logical(scenarios_boxplot[i,16])
+  muxsample=scenarios_boxplot[i,14]
+  Sclaudiosample=as.logical(scenarios_boxplot[i,15])
   
   if (CCMindsample==FALSE){stop("Contains ICM scenarios")}
   
@@ -68,15 +67,15 @@ for (i in 1:nrow(scenarios_boxplot)){
   if (cTAUindsample==FALSE){
     if (CCMindsample==FALSE){
       flnameEst="MLESMM_ICM"}else{
-        if(Xasample==TRUE){if (Xshiftallsample==TRUE){flnameEst="MLESMM_CCM_Xaall"}else{flnameEst="MLESMM_CCM_Xa"} }else{flnameEst="MLESMM_CCM_Xf"}}
+        if(Xasample==TRUE){flnameEst="MLESMM_CCM_Xa" }else{flnameEst="MLESMM_CCM_Xf"}}
   }else{if (Sclaudio == FALSE){
     if (CCMindsample==FALSE){
       flnameEst="MLESMMcTAU_ICM"}else{
-        if(Xasample==TRUE){if (Xshiftallsample==TRUE){flnameEst="MLESMMcTAU_CCM_Xaall"}else{flnameEst="MLESMMcTAU_CCM_Xa"} }else{flnameEst="MLESMMcTAU_CCM_Xf"}}
+        if(Xasample==TRUE){flnameEst="MLESMMcTAU_CCM_Xa"} else{flnameEst="MLESMMcTAU_CCM_Xf"}}
   }else
   {if (CCMindsample==FALSE){
     flnameEst="MLESMMcTAUSclaudio_ICM"}else{
-      if(Xasample==TRUE){if (Xshiftallsample==TRUE){flnameEst="MLESMMcTAUSclaudio_CCM_Xaall"}else{flnameEst="MLESMMcTAUSclaudio_CCM_Xa"} }else{flnameEst="MLESMMcTAUSclaudio_CCM_Xf"}}
+      if(Xasample==TRUE){flnameEst="MLESMMcTAUSclaudio_CCM_Xa"} else{flnameEst="MLESMMcTAUSclaudio_CCM_Xf"}}
   }   }
 
 
