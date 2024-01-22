@@ -32,7 +32,7 @@ n=200     # sample size
 nrep=250  # number of repetitions
 
 scenarios=NULL
-for (cs in 1:1){
+for (cs in 2:2){
   # 3 different contamination scenarios 
   # ICM and CCM with randcont 0/1, Xa=TRUE/FALSE
   
