@@ -57,7 +57,7 @@ if (cTAUind==TRUE){
   time<-as.numeric(rep(c(0:(n_mes-1)),n_suj))
   id<-sort(as.numeric(rep(1:n_suj,n_mes)))
   n_obs = n_suj*n_mes #nb de lignes
-  groups <<- cbind(rep(1:J, each=n),rep((1:n), J)) # a numeric matrix with two columns used to group the observations according to participant.
+  groups <- cbind(rep(1:J, each=n),rep((1:n), J)) # a numeric matrix with two columns used to group the observations according to participant.
   
   # Build the argument "varcov" of the varComprob() function
   z1 = rep(1, J) #Value for intercept (=1) for the J observations by clusters
@@ -93,16 +93,58 @@ for (m in 1:nrep){
                      Xa=Xa,mux=mux)
   
   # Roblme for MLE
-  summaryMLE = Roblme(dat$Y,dat$X,dat$Z,E=NULL,L=dat$L,
-                         rho="MLE",rhoMM=NULL,eps=1e-5,maxiter=100,eff=0.95,V0=NULL)
+  summaryMLE = tryCatch(
+    expr  = {est0 =Roblme(dat$Y,dat$X,dat$Z,E=NULL,L=dat$L,
+                         rho="MLE",rhoMM=NULL,eps=1e-5,maxiter=100,eff=0.95,V0=NULL)}, error  =  function(cond) {
+                           fixedeffectsS = matrix(rep(NA,lbeta*4),lbeta,4)
+                           fixedeffectsMM = matrix(rep(NA,lbeta*4),lbeta,4)
+                           summarythetaS = matrix(rep(NA,ltheta*ltheta),ltheta,ltheta)
+                           varbetaShat = matrix(rep(NA,lbeta*lbeta),lbeta,lbeta)
+                           varbetaMMhat = matrix(rep(NA,lbeta*lbeta),lbeta,lbeta)
+                           varthetahat = matrix(rep(NA,ltheta*ltheta),ltheta,ltheta)
+                           w= rep(NA,n)
+                          dis=rep(NA,n)
+                          iterS =NA
+                           iterM =NA
+                             list(fixedeffectsS=fixedeffectsS,fixedeffectsMM=fixedeffectsMM,summarythetaS=summarythetaS,varbetaShat=varbetaShat,
+                                  varbetaMMhat=varbetaMMhat,varthetahat=varthetahat,
+                                  w=w,dis=dis,iterS=iterS,iterM=iterM)})
   
   # Roblme for S
-  summaryS = Roblme(dat$Y,dat$X,dat$Z,E=NULL,L=dat$L,
-                   rho="biweight",rhoMM=NULL,eps=1e-5,maxiter=100,eff=0.95,V0=NULL)
+  summaryS = tryCatch(
+    expr  = {est0 =Roblme(dat$Y,dat$X,dat$Z,E=NULL,L=dat$L,
+                   rho="biweight",rhoMM=NULL,eps=1e-5,maxiter=100,eff=0.95,V0=NULL)}, error  =  function(cond) {
+                     fixedeffectsS = matrix(rep(NA,lbeta*4),lbeta,4)
+                     fixedeffectsMM = matrix(rep(NA,lbeta*4),lbeta,4)
+                     summarythetaS = matrix(rep(NA,ltheta*ltheta),ltheta,ltheta)
+                     varbetaShat = matrix(rep(NA,lbeta*lbeta),lbeta,lbeta)
+                     varbetaMMhat = matrix(rep(NA,lbeta*lbeta),lbeta,lbeta)
+                     varthetahat = matrix(rep(NA,ltheta*ltheta),ltheta,ltheta)
+                     w= rep(NA,n)
+                     dis=rep(NA,n)
+                     iterS =NA
+                     iterM =NA
+                     list(fixedeffectsS=fixedeffectsS,fixedeffectsMM=fixedeffectsMM,summarythetaS=summarythetaS,varbetaShat=varbetaShat,
+                          varbetaMMhat=varbetaMMhat,varthetahat=varthetahat,
+                          w=w,dis=dis,iterS=iterS,iterM=iterM)})
   
   # Roblme for MM
-  summaryMM = Roblme(dat$Y,dat$X,dat$Z,E=NULL,L=dat$L,
-                    rho="biweight",rhoMM="biweight",eps=1e-5,maxiter=100,eff=0.95,V0=NULL)
+  summaryMM = tryCatch(
+    expr  = {est0 =Roblme(dat$Y,dat$X,dat$Z,E=NULL,L=dat$L,
+                    rho="biweight",rhoMM="biweight",eps=1e-5,maxiter=100,eff=0.95,V0=NULL)}, error  =  function(cond) {
+                      fixedeffectsS = matrix(rep(NA,lbeta*4),lbeta,4)
+                      fixedeffectsMM = matrix(rep(NA,lbeta*4),lbeta,4)
+                      summarythetaS = matrix(rep(NA,ltheta*ltheta),ltheta,ltheta)
+                      varbetaShat = matrix(rep(NA,lbeta*lbeta),lbeta,lbeta)
+                      varbetaMMhat = matrix(rep(NA,lbeta*lbeta),lbeta,lbeta)
+                      varthetahat = matrix(rep(NA,ltheta*ltheta),ltheta,ltheta)
+                      w= rep(NA,n)
+                      dis=rep(NA,n)
+                      iterS =NA
+                      iterM =NA
+                      list(fixedeffectsS=fixedeffectsS,fixedeffectsMM=fixedeffectsMM,summarythetaS=summarythetaS,varbetaShat=varbetaShat,
+                           varbetaMMhat=varbetaMMhat,varthetahat=varthetahat,
+                           w=w,dis=dis,iterS=iterS,iterM=iterM)})
   
   betahatmatMLE[m,]=summaryMLE$fixedeffectsS[,1]
   betahatmatS[m,]=summaryS$fixedeffectsS[,1]
@@ -124,14 +166,25 @@ for (m in 1:nrep){
     # varComprob
     y=vec(t(dat$Y))
     Dataset=data.frame(y,time,groups)
-    summarycTAU=varComprob(y ~ 1 +  time, groups = groups, data = Dataset, varcov = K, control = varComprob.control(lower = c(0, 0, -Inf))) 
+    summarycTAU=tryCatch(
+      expr  = {est0 =varComprob(y ~ 1 +  time, groups = groups, data = Dataset, varcov = K, control = varComprob.control(lower = c(0, 0, -Inf))) }, error  =  function(cond) {
+        beta = rep(NA,lbeta)
+        eta = rep(NA,3)
+        vcov.beta = matrix(rep(NA,lbeta*lbeta),lbeta,lbeta)
+        eta0 = NA
+        list(beta=beta,eta=eta,vcov.beta=vcov.beta,eta0=eta0)})
     
     betahatmatcTAU[m,]=summarycTAU$beta
     thetahatmatcTAU[m,]=c(summarycTAU$eta[1],summarycTAU$eta[3],summarycTAU$eta[2],summarycTAU$eta0)
     asympvarbetacTAU[[m]]=summarycTAU$vcov.beta
     if (Sclaudio == TRUE){
-    summarySclaudio=varComprob(y ~ 1 +  time, groups = groups, data = Dataset, varcov = K, control = varComprob.control(lower = c(0, 0, -Inf),), method = "S", psi = "bisquare") 
-    
+    summarySclaudio=tryCatch(
+      expr  = {est0 =varComprob(y ~ 1 +  time, groups = groups, data = Dataset, varcov = K, control = varComprob.control(lower = c(0, 0, -Inf),), method = "S", psi = "bisquare") }, error  =  function(cond) {
+        beta = rep(NA,lbeta)
+        eta = rep(NA,3)
+        vcov.beta = matrix(rep(NA,lbeta*lbeta),lbeta,lbeta)
+        eta0 = NA
+        list(beta=beta,eta=eta,vcov.beta=vcov.beta,eta0=eta0)})
     betahatmatSclaudio[m,]=summarySclaudio$beta
     thetahatmatSclaudio[m,]=c(summarySclaudio$eta[1],summarySclaudio$eta[3],summarySclaudio$eta[2],summarySclaudio$eta0)
     asympvarbetaSclaudio[[m]]=summarySclaudio$vcov.beta
