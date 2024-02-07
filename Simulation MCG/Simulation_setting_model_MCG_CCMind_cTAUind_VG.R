@@ -36,7 +36,7 @@ source("asympt_norm_constants.R")
 source("function_data_gen_MCG_CCMind_VG.R")
 source("Robust_lme.R")
 source("function_MLESMMcTAUind_estimates_MCG_CCMind_VG.R")
-source("scenarios_MCG_simulation_VG.R")
+source("scenarios_MCG_simulation_VG_claudio.R")
 
 
 # Information for ourselves
