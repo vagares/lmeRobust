@@ -32,18 +32,18 @@ for (cs in 6:6){
   # 3 different contamination scenarios 
   # ICM and CCM with randcont 0/1, Xa=TRUE/FALSE,Xshiftall=TRUE/FALSE
   
- if (cs==6) {CCMind=TRUE;Sclaudio=TRUE;randcont=1;Xa=FALSE;Xshiftall=TRUE}
+ if (cs==6) {CCMind=TRUE;Sclaudio=TRUE;randcont=1;Xa=FALSE}
     # ONLY pevec varying
 
  scenarios=rbind(scenarios,c(nrep,n,k,0,0,0,0,0,1,
                       randcont,as.integer(cTAUind),as.integer(CCMind),
-                      as.integer(Xa),as.integer(Xshiftall),0,as.integer(Sclaudio)))
+                      as.integer(Xa),0,as.integer(Sclaudio)))
 
 
 } # END cs-loop 
 
 colnames(scenarios)=c("nrep","n","k","pe","pb","px","mec","mbc2",
-                              "alphac","rc","cTAUind","CCMind","Xa","Xshiftall","mux","Sclaudio")
+                              "alphac","rc","cTAUind","CCMind","Xa","mux","Sclaudio")
 
 scenarios=data.frame(scenarios)
 
