@@ -36,7 +36,7 @@ source("asympt_norm_constants.R")
 source("function_data_gen_MCG_CCMind_VG.R")
 source("Robust_lme.R")
 source("function_MLESMMcTAUind_estimates_MCG_CCMind_VG.R")
-source("scenarios_MCG_simulation_VG_claudio.R")
+source("scenarios_MCG_simulation_VG.R")
 
 
 # Information for ourselves
@@ -78,15 +78,15 @@ for (i in (1:nrow(scenarios))){
   # Setting the filename depending on yes/no cTAU and yes/no CCM
   if (cTAUindsample==FALSE){
     if (CCMindsample==FALSE){
-      flnameEst="MLESMM_ICM"}else{
+      if(Xasample==TRUE){flnameEst="MLESMM_ICM_Xa" }else{flnameEst="MLESMM_ICM_Xf"}}else{
         if(Xasample==TRUE){flnameEst="MLESMM_CCM_Xa" }else{flnameEst="MLESMM_CCM_Xf"}}
   }else{if (Sclaudio == FALSE){
     if (CCMindsample==FALSE){
-      flnameEst="MLESMMcTAU_ICM"}else{
+      if(Xasample==TRUE){flnameEst="MLESMMcTAU_ICM_Xa"}else{flnameEst="MLESMMcTAU_ICM_Xf"}}else{
         if(Xasample==TRUE){flnameEst="MLESMMcTAU_CCM_Xa"}else{flnameEst="MLESMMcTAU_CCM_Xf"}}
   }else
   {if (CCMindsample==FALSE){
-    flnameEst="MLESMMcTAUSclaudio_ICM"}else{
+    if(Xasample==TRUE){flnameEst="MLESMMcTAUSclaudio_ICM_Xa"}else{flnameEst="MLESMMcTAUSclaudio_ICM_Xf"}}else{
       if(Xasample==TRUE){flnameEst="MLESMMcTAUSclaudio_CCM_Xa"}else{flnameEst="MLESMMcTAUSclaudio_CCM_Xf"}}
   }   }
   MLESMMcTAUind=MLESMMcTAUind_estimates_MCG_CCMind(nrep=nrep,n=nsample,k=ksample,

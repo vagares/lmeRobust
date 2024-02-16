@@ -167,7 +167,7 @@ for (m in 1:nrep){
     y=vec(t(dat$Y))
     Dataset=data.frame(y,time,groups)
     summarycTAU=tryCatch(
-      expr  = {est0 =varComprob(y ~ 1 +  time, groups = groups, data = Dataset, varcov = K, control = varComprob.control(lower = c(0, 0, -Inf))) }, error  =  function(cond) {
+      expr  = {est0 =varComprob(y ~ 1 +  time, groups = groups, data = Dataset, varcov = K, control = varComprob.control(lower = c(0, 0, -Inf),method = "compositeTau", psi = "bisquare")) }, error  =  function(cond) {
         beta = rep(NA,lbeta)
         eta = rep(NA,3)
         vcov.beta = matrix(rep(NA,lbeta*lbeta),lbeta,lbeta)
@@ -179,7 +179,7 @@ for (m in 1:nrep){
     asympvarbetacTAU[[m]]=summarycTAU$vcov.beta
     if (Sclaudio == TRUE){
     summarySclaudio=tryCatch(
-      expr  = {est0 =varComprob(y ~ 1 +  time, groups = groups, data = Dataset, varcov = K, control = varComprob.control(lower = c(0, 0, -Inf),), method = "S", psi = "bisquare") }, error  =  function(cond) {
+      expr  = {est0 =varComprob(y ~ 1 +  time, groups = groups, data = Dataset, varcov = K, control = varComprob.control(lower = c(0, 0, -Inf),method = "S", psi = "bisquare")) }, error  =  function(cond) {
         beta = rep(NA,lbeta)
         eta = rep(NA,3)
         vcov.beta = matrix(rep(NA,lbeta*lbeta),lbeta,lbeta)

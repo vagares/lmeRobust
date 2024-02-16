@@ -6,27 +6,34 @@
 # corresponding to the different setups in dataframe 
 # scenarios_boxplot and produces boxplots of the estimators
 
-source("scenarios_MCG_simulation_VG.R")
+source("scenarios_MCG_simulation_VG_claudio.R")
 
-#scenarios_boxplot=scenarios[(scenarios$mec==-160)&(scenarios$CCMind==1),]
+scenarios_boxplot=scenarios[(scenarios$mec==-160)&(scenarios$CCMind==1),]
 #scenarios_boxplot=scenarios[(scenarios$mbc2==-50)&(scenarios$CCMind==1),]
 #scenarios_boxplot=scenarios[(scenarios$alphac==10)&(scenarios$CCMind==1),]
 #scenarios_boxplot=scenarios[(scenarios$mux==0.5)&(scenarios$CCMind==1),]
-scenarios_boxplot=scenarios[(scenarios$mec==-160)&(scenarios$CCMind==0),]
+#scenarios_boxplot=scenarios[(scenarios$mec==0)&(scenarios$CCMind==1),]
 
 if (max(scenarios_boxplot$pe)!=0){
+  scenarios_boxplot = scenarios_boxplot[scenarios_boxplot$pb==0,]
+  scenarios_boxplot = scenarios_boxplot[scenarios_boxplot$px==0,]
+  
   pname="pe";
   noname="noe";
   noiname="noei";
   size=unique(scenarios_boxplot$mec);
   levelsvec=pevec}
 if (max(scenarios_boxplot$pb)!=0){
+  scenarios_boxplot = scenarios_boxplot[scenarios_boxplot$pe==0,]
+  scenarios_boxplot = scenarios_boxplot[scenarios_boxplot$px==0,]
   pname="pb";
   noname="nobi";
   noiname="nobi";
   size=unique(scenarios_boxplot$mbc2);
   levelsvec=pbvec}
 if (max(scenarios_boxplot$px)!=0){
+  scenarios_boxplot = scenarios_boxplot[scenarios_boxplot$pb==0,]
+  scenarios_boxplot = scenarios_boxplot[scenarios_boxplot$pe==0,]
   pname="px";
   noname="nox";
   noiname="noxi";
@@ -66,16 +73,16 @@ for (i in 1:nrow(scenarios_boxplot)){
   
   if (cTAUindsample==FALSE){
     if (CCMindsample==FALSE){
-      flnameEst="MLESMM_ICM"}else{
+      if(Xasample==TRUE){flnameEst="MLESMM_ICM_Xa" }else{flnameEst="MLESMM_ICM_Xf"}}else{
         if(Xasample==TRUE){flnameEst="MLESMM_CCM_Xa" }else{flnameEst="MLESMM_CCM_Xf"}}
   }else{if (Sclaudio == FALSE){
     if (CCMindsample==FALSE){
-      flnameEst="MLESMMcTAU_ICM"}else{
-        if(Xasample==TRUE){flnameEst="MLESMMcTAU_CCM_Xa"} else{flnameEst="MLESMMcTAU_CCM_Xf"}}
+      if(Xasample==TRUE){flnameEst="MLESMMcTAU_ICM_Xa"}else{flnameEst="MLESMMcTAU_ICM_Xf"}}else{
+        if(Xasample==TRUE){flnameEst="MLESMMcTAU_CCM_Xa"}else{flnameEst="MLESMMcTAU_CCM_Xf"}}
   }else
   {if (CCMindsample==FALSE){
-    flnameEst="MLESMMcTAUSclaudio_ICM"}else{
-      if(Xasample==TRUE){flnameEst="MLESMMcTAUSclaudio_CCM_Xa"} else{flnameEst="MLESMMcTAUSclaudio_CCM_Xf"}}
+    if(Xasample==TRUE){flnameEst="MLESMMcTAUSclaudio_ICM_Xa"}else{flnameEst="MLESMMcTAUSclaudio_ICM_Xf"}}else{
+      if(Xasample==TRUE){flnameEst="MLESMMcTAUSclaudio_CCM_Xa"}else{flnameEst="MLESMMcTAUSclaudio_CCM_Xf"}}
   }   }
 
 
