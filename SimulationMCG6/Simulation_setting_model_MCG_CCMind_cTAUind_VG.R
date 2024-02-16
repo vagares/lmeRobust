@@ -59,7 +59,7 @@ source("scenarios_MCG_simulation_VG_claudio.R")
 
 set.seed(11131957)
 
-for (i in (6:6)){
+for (i in (1:nrow(scenarios))){
   nrep=scenarios[i,1]
   nsample=scenarios[i,2]
   ksample=scenarios[i,3]
