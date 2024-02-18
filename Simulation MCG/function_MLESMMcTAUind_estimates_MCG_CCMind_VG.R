@@ -1,5 +1,5 @@
 # This script contains the code for the function 
-#   - MLESMMcTAUind_estimates_MCG_CCMind. 
+#   - MLESMMCOMPind_estimates_MCG_CCMind. 
 
 # This function generates datasets according to the model 
 # in Mason, Cantoni & Ghisletta (2021) with contamination generated 
@@ -15,19 +15,19 @@
 # - CCM (central contamination model or casewise contamination) 
 
 # For each generated dataset the function also computes the 
-# MLE, S, MM, and cTAU estimates with the functions 
+# MLE, S, MM, and COMP estimates with the functions 
 # Robmle and varComprob 
 # and saves the estimates, the estimated asymptotic variances 
-# and the number of outliers  in a list MLESMMcTAU
+# and the number of outliers  in a list MLESMMCOMP
 
 library(mvtnorm)        # needed for rmvnorm in function data_gen_MCG
 library(robustbase)     # needed for covMcd in function Robust_lme
 library(robustvarComp)  # needed for varComprob
 
 
-MLESMMcTAUind_estimates_MCG_CCMind=function(nrep=1,n=200,k=4,pe=0,pb=0,px=0,
+MLESMMTAUCOMPSTAUind_estimates_MCG_CCMind=function(nrep=1,n=200,k=4,pe=0,pb=0,px=0,
                                   mec=0,mbc2=0,alphac=1,
-                                  randcont=0,cTAUind=FALSE,CCMind=FALSE,
+                                  randcont=0,COMPind=FALSE,CCMind=FALSE,
                                   Xa=FALSE,mux=0,Sclaudioind=FALSE){
 
 lbeta=2   # X has 2 columns
@@ -36,20 +36,24 @@ ltheta=k
 betahatmatMLE=matrix(0,nrow=nrep,ncol=lbeta)
 betahatmatS=matrix(0,nrow=nrep,ncol=lbeta)
 betahatmatMM=matrix(0,nrow=nrep,ncol=lbeta)
+betahatmatTau=matrix(0,nrow=nrep,ncol=lbeta)
 
 thetahatmatMLE=matrix(0,nrow=nrep,ncol=ltheta)
 thetahatmatS=matrix(0,nrow=nrep,ncol=ltheta)
 thetahatmatMM=matrix(0,nrow=nrep,ncol=ltheta)
+thetahatmatTau=matrix(0,nrow=nrep,ncol=ltheta)
 
 asympvarbetaMLE=list()
 asympvarbetaS=list()
 asympvarbetaMM=list()
+asympvarbetaTau=list()
 
 asympvarthetaMLE=list()
 asympvarthetaS=list()
 asympvarthetaMM=list()
+asympvarthetaTau=list()
 
-if (cTAUind==TRUE){
+if (COMPind==TRUE){
   # Data preparation for varComprob
   n_suj=n #nb de sujet
   n_mes=k #nb de mesure max par sujet
@@ -70,10 +74,15 @@ if (cTAUind==TRUE){
   names(K) = c("sigma2_Intercept", "sigma2_Time", "Covariance")
   K <<- K  # This is Z%*%t(Z)
   
-  betahatmatcTAU=matrix(0,nrow=nrep,ncol=lbeta)
-  thetahatmatcTAU=matrix(0,nrow=nrep,ncol=ltheta)
-  asympvarbetacTAU=list()
-  asympvarthetacTAU=list()
+  betahatmatCOMPS=matrix(0,nrow=nrep,ncol=lbeta)
+  thetahatmatCOMPS=matrix(0,nrow=nrep,ncol=ltheta)
+  asympvarbetaCOMPS=list()
+  asympvarthetaCOMPS=list()
+  betahatmatCOMPTau=matrix(0,nrow=nrep,ncol=lbeta)
+  thetahatmatCOMPTau=matrix(0,nrow=nrep,ncol=ltheta)
+  asympvarbetaCOMPTau=list()
+  asympvarthetaCOMPTau=list()
+  
   if (Sclaudioind == TRUE){
     betahatmatSclaudio=matrix(0,nrow=nrep,ncol=lbeta)
     thetahatmatSclaudio=matrix(0,nrow=nrep,ncol=ltheta)
@@ -145,28 +154,39 @@ for (m in 1:nrep){
                       list(fixedeffectsS=fixedeffectsS,fixedeffectsMM=fixedeffectsMM,summarythetaS=summarythetaS,varbetaShat=varbetaShat,
                            varbetaMMhat=varbetaMMhat,varthetahat=varthetahat,
                            w=w,dis=dis,iterS=iterS,iterM=iterM)})
+  summaryTau=tryCatch(
+    expr  = {est0 =varComprob(y ~ 1 +  time, groups = groups, data = Dataset, varcov = K, control = varComprob.control(lower = c(0, 0, -Inf),method = "Tau", psi = "bisquare")) }, error  =  function(cond) {
+      beta = rep(NA,lbeta)
+      eta = rep(NA,3)
+      vcov.beta = matrix(rep(NA,lbeta*lbeta),lbeta,lbeta)
+      eta0 = NA
+      list(beta=beta,eta=eta,vcov.beta=vcov.beta,eta0=eta0)})
   
+
   betahatmatMLE[m,]=summaryMLE$fixedeffectsS[,1]
   betahatmatS[m,]=summaryS$fixedeffectsS[,1]
   betahatmatMM[m,]=summaryMM$fixedeffectsMM[,1]
+  betahatmatTau[m,]=summaryTau$beta
   
   thetahatmatMLE[m,]=summaryMLE$summarythetaS[,1]
   thetahatmatS[m,]=summaryS$summarythetaS[,1]
   thetahatmatMM[m,]=summaryMM$summarythetaS[,1]
+  thetahatmatTau[m,]=c(summaryTau$eta[1],summaryTau$eta[3],summaryTau$eta[2],summaryTau$eta0)
   
   asympvarbetaMLE[[m]]=summaryMLE$varbetaShat
   asympvarbetaS[[m]]=summaryS$varbetaShat
   asympvarbetaMM[[m]]=summaryMM$varbetaMMhat
+  asympvarbetaTau[[m]]=summaryTau$vcov.beta
   
   asympvarthetaMLE[[m]]=summaryMLE$varthetahat
   asympvarthetaS[[m]]=summaryS$varthetahat
   asympvarthetaMM[[m]]=summaryMM$varthetahat
   
-  if (cTAUind==TRUE){
+  if (COMPind==TRUE){
     # varComprob
     y=vec(t(dat$Y))
     Dataset=data.frame(y,time,groups)
-    summarycTAU=tryCatch(
+    summaryCOMPTau=tryCatch(
       expr  = {est0 =varComprob(y ~ 1 +  time, groups = groups, data = Dataset, varcov = K, control = varComprob.control(lower = c(0, 0, -Inf),method = "compositeTau", psi = "bisquare")) }, error  =  function(cond) {
         beta = rep(NA,lbeta)
         eta = rep(NA,3)
@@ -174,9 +194,21 @@ for (m in 1:nrep){
         eta0 = NA
         list(beta=beta,eta=eta,vcov.beta=vcov.beta,eta0=eta0)})
     
-    betahatmatcTAU[m,]=summarycTAU$beta
-    thetahatmatcTAU[m,]=c(summarycTAU$eta[1],summarycTAU$eta[3],summarycTAU$eta[2],summarycTAU$eta0)
-    asympvarbetacTAU[[m]]=summarycTAU$vcov.beta
+    betahatmatCOMPTau[m,]=summaryCOMPTau$beta
+    thetahatmatCOMPTau[m,]=c(summaryCOMPTau$eta[1],summaryCOMPTau$eta[3],summaryCOMPTau$eta[2],summaryCOMPTau$eta0)
+    asympvarbetaCOMPTau[[m]]=summaryCOMPTau$vcov.beta
+    
+    summaryCOMPS=tryCatch(
+      expr  = {est0 =varComprob(y ~ 1 +  time, groups = groups, data = Dataset, varcov = K, control = varComprob.control(lower = c(0, 0, -Inf),method = "compositeS", psi = "bisquare")) }, error  =  function(cond) {
+        beta = rep(NA,lbeta)
+        eta = rep(NA,3)
+        vcov.beta = matrix(rep(NA,lbeta*lbeta),lbeta,lbeta)
+        eta0 = NA
+        list(beta=beta,eta=eta,vcov.beta=vcov.beta,eta0=eta0)})
+    
+    betahatmatCOMPS[m,]=summaryCOMPS$beta
+    thetahatmatCOMPS[m,]=c(summaryCOMPS$eta[1],summaryCOMPS$eta[3],summaryCOMPS$eta[2],summaryCOMPS$eta0)
+    asympvarbetaCOMPS[[m]]=summaryCOMPS$vcov.beta
     if (Sclaudio == TRUE){
     summarySclaudio=tryCatch(
       expr  = {est0 =varComprob(y ~ 1 +  time, groups = groups, data = Dataset, varcov = K, control = varComprob.control(lower = c(0, 0, -Inf),method = "S", psi = "bisquare")) }, error  =  function(cond) {
@@ -216,13 +248,26 @@ MM[[3]]=thetahatmatMM
 MM[[4]]=asympvarthetaMM
 names(MM)=c("beta","varbeta","theta","vartheta")
 
-if (cTAUind==TRUE){
-cTAU=list()
-cTAU[[1]]=betahatmatcTAU
-cTAU[[2]]=asympvarbetacTAU
-cTAU[[3]]=thetahatmatcTAU
-cTAU[[4]]=matrix(0,nrow=k,ncol=k)
-names(cTAU)=c("beta","varbeta","theta","vartheta")
+Tau=list()
+Tau[[1]]=betahatmatTau
+Tau[[2]]=asympvarbetaTau
+Tau[[3]]=thetahatmatTau
+Tau[[4]]=asympvarthetaTau
+names(Tau)=c("beta","varbeta","theta","vartheta")
+
+if (COMPind==TRUE){
+COMPS=list()
+COMPS[[1]]=betahatmatCOMPS
+COMPS[[2]]=asympvarbetaCOMPS
+COMPS[[3]]=thetahatmatCOMPS
+COMPS[[4]]=matrix(0,nrow=k,ncol=k)
+names(COMPS)=c("beta","varbeta","theta","vartheta")
+COMPTau=list()
+COMPTau[[1]]=betahatmatCOMPTau
+COMPTau[[2]]=asympvarbetaCOMPTau
+COMPTau[[3]]=thetahatmatCOMPTau
+COMPTau[[4]]=matrix(0,nrow=k,ncol=k)
+names(COMPTau)=c("beta","varbeta","theta","vartheta")
 if (Sclaudioind == TRUE){
   Sclaudio=list()
   Sclaudio[[1]]=betahatmatSclaudio
@@ -236,33 +281,38 @@ if (Sclaudioind == TRUE){
 no_outliers=data.frame(no_outliers)
 names(no_outliers)=c("nobi","noei","noxi","noe","nox")
 
-if (cTAUind==TRUE){
+if (COMPind==TRUE){
   if (Sclaudioind == FALSE){
-MLESMMcTAU=list()
-MLESMMcTAU[[1]]=MLE
-MLESMMcTAU[[2]]=Sest
-MLESMMcTAU[[3]]=MM
-MLESMMcTAU[[4]]=cTAU
-MLESMMcTAU[[5]]=no_outliers
-names(MLESMMcTAU)=c("MLE","S","MM","cTAU","no_outliers")
-return(MLESMMcTAU)
+MLESMMTAUCOMPSTAU=list()
+MLESMMTAUCOMPSTAU[[1]]=MLE
+MLESMMTAUCOMPSTAU[[2]]=Sest
+MLESMMTAUCOMPSTAU[[3]]=MM
+MLESMMTAUCOMPSTAU[[4]]=Tau
+MLESMMTAUCOMPSTAU[[5]]=COMPS
+MLESMMTAUCOMPSTAU[[6]]=COMPTau
+MLESMMTAUCOMPSTAU[[7]]=no_outliers
+names(MLESMMTAUCOMPSTAU)=c("MLE","S","MM","Tau","COMPS","COMPTau","no_outliers")
+return(MLESMMTAUCOMPSTAU)
 }else{
-  MLESMMcTAU=list()
-  MLESMMcTAU[[1]]=MLE
-  MLESMMcTAU[[2]]=Sest
-  MLESMMcTAU[[3]]=MM
-  MLESMMcTAU[[4]]=cTAU
-  MLESMMcTAU[[5]]=Sclaudio
-  MLESMMcTAU[[6]]=no_outliers
-  names(MLESMMcTAU)=c("MLE","S","MM","cTAU","Sclaudio","no_outliers")
-  return(MLESMMcTAU)
-}}else{MLESMMcTAU=list()
-  MLESMMcTAU[[1]]=MLE
-  MLESMMcTAU[[2]]=Sest
-  MLESMMcTAU[[3]]=MM
-  MLESMMcTAU[[4]]=no_outliers
-  names(MLESMMcTAU)=c("MLE","S","MM","no_outliers")
-  return(MLESMMcTAU)
+  MLESMMTAUCOMPSTAUSclaudio=list()
+  MLESMMTAUCOMPSTAUSclaudio[[1]]=MLE
+  MLESMMTAUCOMPSTAUSclaudio[[2]]=Sest
+  MLESMMTAUCOMPSTAUSclaudio[[3]]=MM
+  MLESMMTAUCOMPSTAUSclaudio[[4]]=Tau
+  MLESMMTAUCOMPSTAUSclaudio[[5]]=COMPS
+  MLESMMTAUCOMPSTAUSclaudio[[6]]=COMPTau
+  MLESMMTAUCOMPSTAUSclaudio[[7]]=Sclaudio
+  MLESMMTAUCOMPSTAUSclaudio[[8]]=no_outliers
+  names(MLESMMTAUCOMPSTAUSclaudio)=c("MLE","S","MM","Tau","COMPS","COMPTau","Sclaudio","no_outliers")
+  return(MLESMMTAUCOMPSTAUSclaudio)
+}}else{MLESMMTAU=list()
+  MLESMMTAU[[1]]=MLE
+  MLESMMTAU[[2]]=Sest
+  MLESMMTAU[[3]]=MM
+  MLESMMTAU[[4]]=Tau
+  MLESMMTAU[[5]]=no_outliers
+  names(MLESMMTAU)=c("MLE","S","MM","Tau","no_outliers")
+  return(MLESMMTAU)
   }
 
-} # End of function MLESMMcTAUind_estimates_MCG_CCMind
+} # End of function MLESMMCOMPind_estimates_MCG_CCMind
