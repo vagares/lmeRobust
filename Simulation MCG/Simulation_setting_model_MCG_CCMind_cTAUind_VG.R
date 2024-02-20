@@ -11,7 +11,7 @@
 #   - MLESMM_ICM
 #   - MLESMM_CCM
 #   - MLESMMCOMP_ICM
-#   - MLESMMCOMP_ICM
+#   - MLESMMCOMP_CCM
 # depending on the chosen scenario
 
 # The .Rdata files are stored in designated subfolders
@@ -53,7 +53,7 @@ source("scenarios_MCG_simulation_VG.R")
 # mbc2 shift in the mean of random effect b2
 # alphac multiplication factor in component x_ij in X
 # rc index to use random number (1) or fixed number (0) of outliers
-# COMPind index to incorporate COMP (TRUE) or not (FALSE)
+# COMPind index to incorporate composite estimators (TRUE) or not (FALSE)
 # CCMind index to use CCM (TRUE) or ICM (FALSE)
 
 
@@ -75,6 +75,7 @@ for (i in (1:nrow(scenarios))){
   Xasample=as.logical(scenarios[i,13])
   muxsample=scenarios[i,14]
   Sclaudiosample=as.logical(scenarios[i,15])
+  
   # Setting the filename depending on yes/no COMP and yes/no CCM
   if (COMPindsample==FALSE){
     if (CCMindsample==FALSE){
@@ -89,6 +90,7 @@ for (i in (1:nrow(scenarios))){
     if(Xasample==TRUE){flnameEst="MLESMMTAUCOMPSTAUSclaudio_ICM_Xa"}else{flnameEst="MLESMMTAUCOMPSTAUSclaudio_ICM_Xf"}}else{
       if(Xasample==TRUE){flnameEst="MLESMMTAUCOMPSTAUSclaudio_CCM_Xa"}else{flnameEst="MLESMMTAUCOMPSTAUSclaudio_CCM_Xf"}}
   }   }
+  
   MLESMMTAUCOMPSTAUind=MLESMMTAUCOMPSTAUind_estimates_MCG_CCMind(nrep=nrep,n=nsample,k=ksample,
                                       pe=pesample,pb=pbsample,px=pxsample,
                                       mec=mecsample,mbc2=mbc2sample,

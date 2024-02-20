@@ -112,10 +112,10 @@ for (m in 1:nrep){
                            varbetaMMhat = matrix(rep(NA,lbeta*lbeta),lbeta,lbeta)
                            varthetahat = matrix(rep(NA,ltheta*ltheta),ltheta,ltheta)
                            w= rep(NA,n)
-                          dis=rep(NA,n)
-                          iterS =NA
+                           dis=rep(NA,n)
+                           iterS =NA
                            iterM =NA
-                             list(fixedeffectsS=fixedeffectsS,fixedeffectsMM=fixedeffectsMM,summarythetaS=summarythetaS,varbetaShat=varbetaShat,
+                           list(fixedeffectsS=fixedeffectsS,fixedeffectsMM=fixedeffectsMM,summarythetaS=summarythetaS,varbetaShat=varbetaShat,
                                   varbetaMMhat=varbetaMMhat,varthetahat=varthetahat,
                                   w=w,dis=dis,iterS=iterS,iterM=iterM)})
   
@@ -154,6 +154,8 @@ for (m in 1:nrep){
                       list(fixedeffectsS=fixedeffectsS,fixedeffectsMM=fixedeffectsMM,summarythetaS=summarythetaS,varbetaShat=varbetaShat,
                            varbetaMMhat=varbetaMMhat,varthetahat=varthetahat,
                            w=w,dis=dis,iterS=iterS,iterM=iterM)})
+
+  # varComprob for TAU
   summaryTau=tryCatch(
     expr  = {est0 =varComprob(y ~ 1 +  time, groups = groups, data = Dataset, varcov = K, control = varComprob.control(lower = c(0, 0, -Inf),method = "Tau", psi = "bisquare")) }, error  =  function(cond) {
       beta = rep(NA,lbeta)
@@ -183,7 +185,7 @@ for (m in 1:nrep){
   asympvarthetaMM[[m]]=summaryMM$varthetahat
   
   if (COMPind==TRUE){
-    # varComprob
+    # varComprob for composite TAU
     y=vec(t(dat$Y))
     Dataset=data.frame(y,time,groups)
     summaryCOMPTau=tryCatch(
@@ -198,6 +200,7 @@ for (m in 1:nrep){
     thetahatmatCOMPTau[m,]=c(summaryCOMPTau$eta[1],summaryCOMPTau$eta[3],summaryCOMPTau$eta[2],summaryCOMPTau$eta0)
     asympvarbetaCOMPTau[[m]]=summaryCOMPTau$vcov.beta
     
+    # varComprob for composite S
     summaryCOMPS=tryCatch(
       expr  = {est0 =varComprob(y ~ 1 +  time, groups = groups, data = Dataset, varcov = K, control = varComprob.control(lower = c(0, 0, -Inf),method = "compositeS", psi = "bisquare")) }, error  =  function(cond) {
         beta = rep(NA,lbeta)
@@ -209,8 +212,10 @@ for (m in 1:nrep){
     betahatmatCOMPS[m,]=summaryCOMPS$beta
     thetahatmatCOMPS[m,]=c(summaryCOMPS$eta[1],summaryCOMPS$eta[3],summaryCOMPS$eta[2],summaryCOMPS$eta0)
     asympvarbetaCOMPS[[m]]=summaryCOMPS$vcov.beta
+
     if (Sclaudio == TRUE){
-    summarySclaudio=tryCatch(
+      # varComprob for S
+      summarySclaudio=tryCatch(
       expr  = {est0 =varComprob(y ~ 1 +  time, groups = groups, data = Dataset, varcov = K, control = varComprob.control(lower = c(0, 0, -Inf),method = "S", psi = "bisquare")) }, error  =  function(cond) {
         beta = rep(NA,lbeta)
         eta = rep(NA,3)
@@ -262,12 +267,14 @@ COMPS[[2]]=asympvarbetaCOMPS
 COMPS[[3]]=thetahatmatCOMPS
 COMPS[[4]]=matrix(0,nrow=k,ncol=k)
 names(COMPS)=c("beta","varbeta","theta","vartheta")
+
 COMPTau=list()
 COMPTau[[1]]=betahatmatCOMPTau
 COMPTau[[2]]=asympvarbetaCOMPTau
 COMPTau[[3]]=thetahatmatCOMPTau
 COMPTau[[4]]=matrix(0,nrow=k,ncol=k)
 names(COMPTau)=c("beta","varbeta","theta","vartheta")
+
 if (Sclaudioind == TRUE){
   Sclaudio=list()
   Sclaudio[[1]]=betahatmatSclaudio
@@ -275,7 +282,7 @@ if (Sclaudioind == TRUE){
   Sclaudio[[3]]=thetahatmatSclaudio
   Sclaudio[[4]]=matrix(0,nrow=k,ncol=k)
   names(Sclaudio)=c("beta","varbeta","theta","vartheta")
-}
+  }
 }
 
 no_outliers=data.frame(no_outliers)
@@ -283,36 +290,36 @@ names(no_outliers)=c("nobi","noei","noxi","noe","nox")
 
 if (COMPind==TRUE){
   if (Sclaudioind == FALSE){
-MLESMMTAUCOMPSTAU=list()
-MLESMMTAUCOMPSTAU[[1]]=MLE
-MLESMMTAUCOMPSTAU[[2]]=Sest
-MLESMMTAUCOMPSTAU[[3]]=MM
-MLESMMTAUCOMPSTAU[[4]]=Tau
-MLESMMTAUCOMPSTAU[[5]]=COMPS
-MLESMMTAUCOMPSTAU[[6]]=COMPTau
-MLESMMTAUCOMPSTAU[[7]]=no_outliers
-names(MLESMMTAUCOMPSTAU)=c("MLE","S","MM","Tau","COMPS","COMPTau","no_outliers")
-return(MLESMMTAUCOMPSTAU)
-}else{
-  MLESMMTAUCOMPSTAUSclaudio=list()
-  MLESMMTAUCOMPSTAUSclaudio[[1]]=MLE
-  MLESMMTAUCOMPSTAUSclaudio[[2]]=Sest
-  MLESMMTAUCOMPSTAUSclaudio[[3]]=MM
-  MLESMMTAUCOMPSTAUSclaudio[[4]]=Tau
-  MLESMMTAUCOMPSTAUSclaudio[[5]]=COMPS
-  MLESMMTAUCOMPSTAUSclaudio[[6]]=COMPTau
-  MLESMMTAUCOMPSTAUSclaudio[[7]]=Sclaudio
-  MLESMMTAUCOMPSTAUSclaudio[[8]]=no_outliers
-  names(MLESMMTAUCOMPSTAUSclaudio)=c("MLE","S","MM","Tau","COMPS","COMPTau","Sclaudio","no_outliers")
-  return(MLESMMTAUCOMPSTAUSclaudio)
-}}else{MLESMMTAU=list()
-  MLESMMTAU[[1]]=MLE
-  MLESMMTAU[[2]]=Sest
-  MLESMMTAU[[3]]=MM
-  MLESMMTAU[[4]]=Tau
-  MLESMMTAU[[5]]=no_outliers
-  names(MLESMMTAU)=c("MLE","S","MM","Tau","no_outliers")
-  return(MLESMMTAU)
-  }
+  MLESMMTAUCOMPSTAU=list()
+  MLESMMTAUCOMPSTAU[[1]]=MLE
+  MLESMMTAUCOMPSTAU[[2]]=Sest
+  MLESMMTAUCOMPSTAU[[3]]=MM
+  MLESMMTAUCOMPSTAU[[4]]=Tau
+  MLESMMTAUCOMPSTAU[[5]]=COMPS
+  MLESMMTAUCOMPSTAU[[6]]=COMPTau
+  MLESMMTAUCOMPSTAU[[7]]=no_outliers
+  names(MLESMMTAUCOMPSTAU)=c("MLE","S","MM","Tau","COMPS","COMPTau","no_outliers")
+  return(MLESMMTAUCOMPSTAU)
+  }else{
+    MLESMMTAUCOMPSTAUSclaudio=list()
+    MLESMMTAUCOMPSTAUSclaudio[[1]]=MLE
+    MLESMMTAUCOMPSTAUSclaudio[[2]]=Sest
+    MLESMMTAUCOMPSTAUSclaudio[[3]]=MM
+    MLESMMTAUCOMPSTAUSclaudio[[4]]=Tau
+    MLESMMTAUCOMPSTAUSclaudio[[5]]=COMPS
+    MLESMMTAUCOMPSTAUSclaudio[[6]]=COMPTau
+    MLESMMTAUCOMPSTAUSclaudio[[7]]=Sclaudio
+    MLESMMTAUCOMPSTAUSclaudio[[8]]=no_outliers
+    names(MLESMMTAUCOMPSTAUSclaudio)=c("MLE","S","MM","Tau","COMPS","COMPTau","Sclaudio","no_outliers")
+    return(MLESMMTAUCOMPSTAUSclaudio)
+    }}else{MLESMMTAU=list()
+        MLESMMTAU[[1]]=MLE
+        MLESMMTAU[[2]]=Sest
+        MLESMMTAU[[3]]=MM
+        MLESMMTAU[[4]]=Tau
+        MLESMMTAU[[5]]=no_outliers
+        names(MLESMMTAU)=c("MLE","S","MM","Tau","no_outliers")
+        return(MLESMMTAU)
+        }
 
 } # End of function MLESMMCOMPind_estimates_MCG_CCMind
