@@ -55,12 +55,12 @@ asympvarthetaTau=list()
 
 if (COMPind==TRUE){
   # Data preparation for varComprob
-  n_suj=n #nb de sujet
-  n_mes=k #nb de mesure max par sujet
+  n_suj=n #nb of cases
+  n_mes=k #nb maximum number of measurements per case
   J=n_mes
   time<-as.numeric(rep(c(0:(n_mes-1)),n_suj))
   id<-sort(as.numeric(rep(1:n_suj,n_mes)))
-  n_obs = n_suj*n_mes #nb de lignes
+  n_obs = n_suj*n_mes #nb of rows
   groups <- cbind(rep(1:J, each=n),rep((1:n), J)) # a numeric matrix with two columns used to group the observations according to participant.
   
   # Build the argument "varcov" of the varComprob() function
