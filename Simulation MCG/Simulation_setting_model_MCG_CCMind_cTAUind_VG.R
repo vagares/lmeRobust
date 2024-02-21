@@ -1,6 +1,6 @@
 # The script runs the simulation for these scenarios using
 # the functions 
-#   - MLESMMcTAUind_estimates_MCG_CCMind 
+#   - MLESMMCOMPind_estimates_MCG_CCMind 
 #   - data_gen_MCG_CCMind
 
 # It can run from an empty environment and sources the required R-scripts.
@@ -10,8 +10,8 @@
 # containing a list by the name of
 #   - MLESMM_ICM
 #   - MLESMM_CCM
-#   - MLESMMcTAU_ICM
-#   - MLESMMcTAU_ICM
+#   - MLESMMCOMP_ICM
+#   - MLESMMCOMP_CCM
 # depending on the chosen scenario
 
 # The .Rdata files are stored in designated subfolders
@@ -53,7 +53,7 @@ source("scenarios_MCG_simulation_VG.R")
 # mbc2 shift in the mean of random effect b2
 # alphac multiplication factor in component x_ij in X
 # rc index to use random number (1) or fixed number (0) of outliers
-# cTAUind index to incorporate cTAU (TRUE) or not (FALSE)
+# COMPind index to incorporate composite estimators (TRUE) or not (FALSE)
 # CCMind index to use CCM (TRUE) or ICM (FALSE)
 
 
@@ -70,31 +70,33 @@ for (i in (1:nrow(scenarios))){
   mbc2sample=scenarios[i,8]
   alphacsample=scenarios[i,9]
   rcsample=scenarios[i,10]
-  cTAUindsample=as.logical(scenarios[i,11])
+  COMPindsample=as.logical(scenarios[i,11])
   CCMindsample=as.logical(scenarios[i,12])
   Xasample=as.logical(scenarios[i,13])
   muxsample=scenarios[i,14]
   Sclaudiosample=as.logical(scenarios[i,15])
-  # Setting the filename depending on yes/no cTAU and yes/no CCM
-  if (cTAUindsample==FALSE){
+  
+  # Setting the filename depending on yes/no COMP and yes/no CCM
+  if (COMPindsample==FALSE){
     if (CCMindsample==FALSE){
-      if(Xasample==TRUE){flnameEst="MLESMM_ICM_Xa" }else{flnameEst="MLESMM_ICM_Xf"}}else{
-        if(Xasample==TRUE){flnameEst="MLESMM_CCM_Xa" }else{flnameEst="MLESMM_CCM_Xf"}}
+      if(Xasample==TRUE){flnameEst="MLESMMTAU_ICM_Xa" }else{flnameEst="MLESMMTAU_ICM_Xf"}}else{
+        if(Xasample==TRUE){flnameEst="MLESMMTAU_CCM_Xa" }else{flnameEst="MLESMMTAU_CCM_Xf"}}
   }else{if (Sclaudio == FALSE){
     if (CCMindsample==FALSE){
-      if(Xasample==TRUE){flnameEst="MLESMMcTAU_ICM_Xa"}else{flnameEst="MLESMMcTAU_ICM_Xf"}}else{
-        if(Xasample==TRUE){flnameEst="MLESMMcTAU_CCM_Xa"}else{flnameEst="MLESMMcTAU_CCM_Xf"}}
+      if(Xasample==TRUE){flnameEst="MLESMMTAUCOMPSTAU_ICM_Xa"}else{flnameEst="MLESMMTAUCOMPSTAU_ICM_Xf"}}else{
+        if(Xasample==TRUE){flnameEst="MLESMMTAUCOMPSTAU_CCM_Xa"}else{flnameEst="MLESMMTAUCOMPSTAU_CCM_Xf"}}
   }else
   {if (CCMindsample==FALSE){
-    if(Xasample==TRUE){flnameEst="MLESMMcTAUSclaudio_ICM_Xa"}else{flnameEst="MLESMMcTAUSclaudio_ICM_Xf"}}else{
-      if(Xasample==TRUE){flnameEst="MLESMMcTAUSclaudio_CCM_Xa"}else{flnameEst="MLESMMcTAUSclaudio_CCM_Xf"}}
+    if(Xasample==TRUE){flnameEst="MLESMMTAUCOMPSTAUSclaudio_ICM_Xa"}else{flnameEst="MLESMMTAUCOMPSTAUSclaudio_ICM_Xf"}}else{
+      if(Xasample==TRUE){flnameEst="MLESMMTAUCOMPSTAUSclaudio_CCM_Xa"}else{flnameEst="MLESMMTAUCOMPSTAUSclaudio_CCM_Xf"}}
   }   }
-  MLESMMcTAUind=MLESMMcTAUind_estimates_MCG_CCMind(nrep=nrep,n=nsample,k=ksample,
+  
+  MLESMMTAUCOMPSTAUind=MLESMMTAUCOMPSTAUind_estimates_MCG_CCMind(nrep=nrep,n=nsample,k=ksample,
                                       pe=pesample,pb=pbsample,px=pxsample,
                                       mec=mecsample,mbc2=mbc2sample,
                                       alphac=alphacsample,
                                       randcont=rcsample,
-                                      cTAUind=cTAUindsample,
+                                      COMPind=COMPindsample,
                                       CCMind=CCMindsample,
                                       Xa=Xasample,
                                       mux=muxsample,
@@ -173,7 +175,7 @@ for (i in (1:nrow(scenarios))){
                     
                   }}
   
-save(MLESMMcTAUind,file=flname)
+save(MLESMMTAUCOMPSTAUind,file=flname)
 
 print(i)  
 }

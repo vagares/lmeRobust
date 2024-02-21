@@ -44,20 +44,20 @@ for (i in 1:nrow(scenarios_boxplot)){
   mbc2sample=scenarios_boxplot[i,8]
   alphacsample=scenarios_boxplot[i,9]
   rcsample=scenarios_boxplot[i,10]
-  cTAUindsample=as.logical(scenarios_boxplot[i,11])
+  COMPindsample=as.logical(scenarios_boxplot[i,11])
   CCMindsample=as.logical(scenarios_boxplot[i,12])
   
   if (CCMindsample==FALSE){stop("Contains ICM scenarios")}
   
-  # Setting the filename depending on yes/no cTAU and yes/no CCM
-  if (cTAUindsample==FALSE){
+  # Setting the filename depending on yes/no COMP and yes/no CCM
+  if (COMPindsample==FALSE){
     if (CCMindsample==FALSE){
-      flnameEst="MLESMM_ICM"}else{
-        flnameEst="MLESMM_CCM"}
+      flnameEst="MLESMMTAU_ICM"}else{
+        flnameEst="MLESMMTAU_CCM"}
   }else{
     if (CCMindsample==FALSE){
-      flnameEst="MLESMMcTAU_ICM"}else{
-        flnameEst="MLESMMcTAU_CCM"}
+      flnameEst="MLESMMTAUCOMPSTAU_ICM"}else{
+        flnameEst="MLESMMTAUCOMPSTAU_CCM"}
   }
   
 
@@ -109,23 +109,23 @@ for (i in 1:nrow(scenarios_boxplot)){
   # dataframe for MLE beta
   boxplotMLEbeta=cbind(rep(1,times=nrep),
                        rep(scenarios_boxplot[[pname]][i],times=nrep),
-                       MLESMMcTAUind$MLE$beta)
+                       MLESMMCOMPind$MLE$beta)
   
   # dataframe for S beta
   boxplotSbeta=cbind(rep(2,times=nrep),
                      rep(scenarios_boxplot[[pname]][i],times=nrep),
-                     MLESMMcTAUind$S$beta)
+                     MLESMMCOMPind$S$beta)
   
   # dataframe for MM beta
   boxplotMMbeta=cbind(rep(3,times=nrep),
                       rep(scenarios_boxplot[[pname]][i],times=nrep),
-                      MLESMMcTAUind$MM$beta)
+                      MLESMMCOMPind$MM$beta)
   
-  if (cTAUindsample==TRUE){
-  # dataframe for cTAU beta
-  boxplotcTAUbeta=cbind(rep(4,times=nrep),
+  if (COMPindsample==TRUE){
+  # dataframe for COMP beta
+  boxplotCOMPbeta=cbind(rep(4,times=nrep),
                       rep(scenarios_boxplot[[pname]][i],times=nrep),
-                      MLESMMcTAUind$cTAU$beta)
+                      MLESMMCOMPind$COMP$beta)
   }
   
   # Combining all dataframes for beta in one.
@@ -136,24 +136,24 @@ for (i in 1:nrow(scenarios_boxplot)){
                           boxplotSbeta,
                           boxplotMMbeta)
 
-  if (cTAUindsample==TRUE){
-  boxplotBETA=rbind(boxplotBETA,boxplotcTAUbeta)
+  if (COMPindsample==TRUE){
+  boxplotBETA=rbind(boxplotBETA,boxplotCOMPbeta)
   }    
   
   # dataframe for MLE theta
   boxplotMLEtheta=cbind(rep(1,times=nrep),
                         rep(scenarios_boxplot[[pname]][i],times=nrep),
-                        MLESMMcTAUind$MLE$theta)
+                        MLESMMCOMPind$MLE$theta)
   # dataframe for S theta
   boxplotStheta=cbind(rep(2,times=nrep),
                       rep(scenarios_boxplot[[pname]][i],times=nrep),
-                      MLESMMcTAUind$S$theta)
+                      MLESMMCOMPind$S$theta)
   
-  if (cTAUindsample==TRUE){
-  # dataframe for cTAU theta
-  boxplotcTAUtheta=cbind(rep(4,times=nrep),
+  if (COMPindsample==TRUE){
+  # dataframe for COMP theta
+  boxplotCOMPtheta=cbind(rep(4,times=nrep),
                       rep(scenarios_boxplot[[pname]][i],times=nrep),
-                      MLESMMcTAUind$cTAU$theta)
+                      MLESMMCOMPind$COMP$theta)
   }
 
   # Combining all dataframes for theta in one.
@@ -163,14 +163,14 @@ for (i in 1:nrow(scenarios_boxplot)){
                            boxplotMLEtheta,
                            boxplotStheta)
  
-  if (cTAUindsample==TRUE){
-    boxplotTHETA=rbind(boxplotTHETA,boxplotcTAUtheta)
+  if (COMPindsample==TRUE){
+    boxplotTHETA=rbind(boxplotTHETA,boxplotCOMPtheta)
   }    
   
   # dataframe for number of outliers in i-th scenario
   boxplotOUTLIER_tmp=cbind(rep(scenarios_boxplot$n,nrep),
                                   rep(scenarios_boxplot[[pname]][i],times=nrep),
-                                  MLESMMcTAUind$no_outliers)
+                                  MLESMMCOMPind$no_outliers)
   
   # Combining with dataframes of previous scenarios
   boxplotOUTLIER=rbind(boxplotOUTLIER,
@@ -182,12 +182,12 @@ for (i in 1:nrow(scenarios_boxplot)){
 
 colnames(boxplotBETA)=c("Estimator",pname,"beta1","beta2")
 boxplotBETA=data.frame(boxplotBETA)
-if (cTAUind==TRUE){
+if (COMPind==TRUE){
   levBETA=1:4
-  labBETA=c("MLE","S","MM","cTAU")
+  labBETA=c("MLE","S","MM","Tau","COMPS","COMPTau")
 }else{
   levBETA=1:3
-  labBETA=c("MLE","S","MM")
+  labBETA=c("MLE","S","MM","Tau")
   }
 boxplotBETA[,1]=factor(boxplotBETA[,1],
                       levels=levBETA,
@@ -198,12 +198,12 @@ boxplotBETA[,2]=factor(boxplotBETA[,2],levels=levelsvec)
 colnames(boxplotTHETA)=c("Estimator",pname,
                                "theta1","theta2","theta3","theta4")
 boxplotTHETA=data.frame(boxplotTHETA)
-if (cTAUind==TRUE){
+if (COMPind==TRUE){
   levTHETA=c(1,2,4)
-  labTHETA=c("MLE","S","cTAU")
+  labTHETA=c("MLE","S","Tau","COMPS","COMPTau")
 }else{
   levTHETA=1:2
-  labTHETA=c("MLE","S")
+  labTHETA=c("MLE","S","Tau")
 }
 boxplotTHETA[,1]=factor(boxplotTHETA[,1],
                         levels=levTHETA,
