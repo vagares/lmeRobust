@@ -15,7 +15,7 @@
 # COMP included yes (COMP==TRUE) or no (COMP==FALSE)
 
 COMPind=TRUE
-Sclaudio = FALSE
+Sclaudio = TRUE
 #######################################################################
 # creating dataframe containing different contamination schemes as rows
 
@@ -32,14 +32,14 @@ n=200     # sample size
 nrep=1  # number of repetitions
 
 scenarios=NULL
-for (cs in 1:4){
+for (cs in 1:1){
   # 3 different contamination scenarios 
   # ICM and CCM with randcont 0/1, Xa=TRUE/FALSE
   
   if (cs==1) {CCMind=FALSE;randcont=0;Xa=FALSE} # value of randcont has no influence
-  if (cs==2) {CCMind=TRUE;randcont=0;Xa=FALSE}
-  if (cs==3) {CCMind=FALSE;randcont=0;Xa=TRUE} # value of randcont has no influence
-  if (cs==4) {CCMind=TRUE;randcont=0;Xa=TRUE}
+  #if (cs==2) {CCMind=TRUE;randcont=0;Xa=FALSE}
+  #if (cs==3) {CCMind=FALSE;randcont=0;Xa=TRUE} # value of randcont has no influence
+  #if (cs==4) {CCMind=TRUE;randcont=0;Xa=TRUE}
   #if (cs==3) {CCMind=TRUE;Sclaudio=FALSE;randcont=0;Xa=FALSE}
   #if (cs==4) {CCMind=TRUE;Sclaudio=FALSE;randcont=1;Xa=TRUE}
   #if (cs==5) {CCMind=TRUE;Sclaudio=TRUE;randcont=1;Xa=FALSE}
