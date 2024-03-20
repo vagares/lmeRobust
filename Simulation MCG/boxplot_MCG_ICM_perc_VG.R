@@ -6,9 +6,9 @@
 # corresponding to the different setups in dataframe 
 # scenarios_boxplot and produces boxplots of the estimators
 
-source("scenarios_MCG_simulation.R")
+source("scenarios_MCG_simulation_VG.R")
 
-scenarios_boxplot=scenarios[(scenarios$mec==-80)&(scenarios$CCMind==0),]
+scenarios_boxplot=scenarios[(scenarios$mec==-40)&(scenarios$CCMind==0),]
 #scenarios_boxplot=scenarios[(scenarios$mbc2==-50)&(scenarios$CCMind==0),]
 #scenarios_boxplot=scenarios[(scenarios$alphac==2)&(scenarios$CCMind==0),]
 
@@ -158,22 +158,22 @@ for (i in 1:nrow(scenarios_boxplot)){
                         rep(scenarios_boxplot[[pname]][i],times=nrep),
                         MLESMMTAUCOMPSTAUind$MM$beta)
     
-    boxplotTaubeta=cbind(rep(3,times=nrep),
+    boxplotTaubeta=cbind(rep(4,times=nrep),
                          rep(scenarios_boxplot[[pname]][i],times=nrep),
                          MLESMMTAUCOMPSTAUind$Tau$beta)
     
-    if (cTAUindsample==TRUE){
+    if (COMPindsample==TRUE){
       # dataframe for cTAU beta
-      boxplotcTAUbeta=cbind(rep(4,times=nrep),
+      boxplotcTAUbeta=cbind(rep(6,times=nrep),
                             rep(scenarios_boxplot[[pname]][i],times=nrep),
                             MLESMMTAUCOMPSTAUind$COMPTau$beta)
-      boxplotcSbeta=cbind(rep(4,times=nrep),
+      boxplotcSbeta=cbind(rep(5,times=nrep),
                           rep(scenarios_boxplot[[pname]][i],times=nrep),
                           MLESMMTAUCOMPSTAUind$COMPS$beta)
     }
     
     if (Sclaudiosample==TRUE){
-      boxplotSclaudiobeta=cbind(rep(5,times=nrep),rep(scenarios_boxplot[[pname]][i],times=nrep),
+      boxplotSclaudiobeta=cbind(rep(7,times=nrep),rep(scenarios_boxplot[[pname]][i],times=nrep),
                                 MLESMMTAUCOMPSTAUind$Sclaudio$beta)}
     
     # Combining all dataframes for beta in one.
@@ -195,20 +195,20 @@ for (i in 1:nrow(scenarios_boxplot)){
     boxplotStheta=cbind(rep(2,times=nrep),
                         rep(scenarios_boxplot[[pname]][i],times=nrep),
                         MLESMMTAUCOMPSTAUind$S$theta)
-    boxplotTautheta=cbind(rep(2,times=nrep),
+    boxplotTautheta=cbind(rep(4,times=nrep),
                           rep(scenarios_boxplot[[pname]][i],times=nrep),
                           MLESMMTAUCOMPSTAUind$Tau$theta)
     
     if (COMPindsample==TRUE){
       # dataframe for cTAU theta
-      boxplotcTAUtheta=cbind(rep(4,times=nrep),
+      boxplotcTAUtheta=cbind(rep(6,times=nrep),
                              rep(scenarios_boxplot[[pname]][i],times=nrep),
                              MLESMMTAUCOMPSTAUind$COMPTau$theta)
-      boxplotcStheta=cbind(rep(4,times=nrep),
+      boxplotcStheta=cbind(rep(5,times=nrep),
                            rep(scenarios_boxplot[[pname]][i],times=nrep),
                            MLESMMTAUCOMPSTAUind$COMPS$theta)}
     if (Sclaudiosample==TRUE){
-      boxplotSclaudiotheta=cbind(rep(5,times=nrep),
+      boxplotSclaudiotheta=cbind(rep(7,times=nrep),
                                  rep(scenarios_boxplot[[pname]][i],times=nrep),
                                  MLESMMTAUCOMPSTAUind$Sclaudio$theta)
     }
@@ -245,15 +245,15 @@ for (i in 1:nrow(scenarios_boxplot)){
 
 colnames(boxplotBETA)=c("Estimator",pname,"beta1","beta2")
 boxplotBETA=data.frame(boxplotBETA)
-if (cTAUind==TRUE){
+if (COMPind==TRUE){
   if (Sclaudio==TRUE){
-    levBETA=1:5
+    levBETA=1:7
     labBETA=c("MLE","S","MM","Tau","COMPS","COMPTau","Sclaudio")}else{
-      levBETA=1:4
+      levBETA=1:6
       labBETA=c("MLE","S","MM","Tau","COMPS","COMPTau") 
     }
 }else{
-  levBETA=1:3
+  levBETA=1:4
   labBETA=c("MLE","S","MM","Tau")
 }
 boxplotBETA[,1]=factor(boxplotBETA[,1],
@@ -268,12 +268,12 @@ colnames(boxplotTHETA)=c("Estimator",pname,
 boxplotTHETA=data.frame(boxplotTHETA)
 if (COMPind==TRUE){
   if (Sclaudio==TRUE){
-    levTHETA=c(1,2,4,5)
+    levTHETA=c(1,2,4,5,6,7)
     labTHETA=c("MLE","S","Tau","COMPS","COMPTau","Sclaudio")}else{
-      levTHETA=c(1,2,4)
+      levTHETA=c(1,2,4,5,6)
       labTHETA=c("MLE","S","Tau","COMPS","COMPTau")
     }}else{
-      levTHETA=1:2
+      levTHETA=c(1,2,4)
       labTHETA=c("MLE","S","Tau")
     }
 boxplotTHETA[,1]=factor(boxplotTHETA[,1],

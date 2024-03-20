@@ -8,7 +8,7 @@
 
 source("scenarios_MCG_simulation_VG.R")
 
-scenarios_boxplot=scenarios[(scenarios$mec==-160)&(scenarios$CCMind==0),]
+scenarios_boxplot=scenarios[(scenarios$mec==-160)&(scenarios$CCMind==1),]
 #scenarios_boxplot=scenarios[(scenarios$mbc2==-50)&(scenarios$CCMind==1),]
 #scenarios_boxplot=scenarios[(scenarios$alphac==10)&(scenarios$CCMind==1),]
 #scenarios_boxplot=scenarios[(scenarios$mux==0.5)&(scenarios$CCMind==1),]
@@ -68,9 +68,7 @@ for (i in 1:nrow(scenarios_boxplot)){
   
   if (CCMindsample==FALSE){stop("Contains ICM scenarios")}
   
-  # Setting the filename depending on yes/no COMP and yes/no CCM
-
-  
+  # Setting the filename depending on yes/no cTAU and yes/no CCM
   if (COMPindsample==FALSE){
     if (CCMindsample==FALSE){
       if(Xasample==TRUE){flnameEst="MLESMMTAU_ICM_Xa" }else{flnameEst="MLESMMTAU_ICM_Xf"}}else{
@@ -84,26 +82,13 @@ for (i in 1:nrow(scenarios_boxplot)){
     if(Xasample==TRUE){flnameEst="MLESMMTAUCOMPSTAUSclaudio_ICM_Xa"}else{flnameEst="MLESMMTAUCOMPSTAUSclaudio_ICM_Xf"}}else{
       if(Xasample==TRUE){flnameEst="MLESMMTAUCOMPSTAUSclaudio_CCM_Xa"}else{flnameEst="MLESMMTAUCOMPSTAUSclaudio_CCM_Xf"}}
   }   }
-
-
+  
+  
   
   if ((scenarios_boxplot$pe[i]==0)&
       (scenarios_boxplot$pb[i]==0)&
       (scenarios_boxplot$px[i]==0)){
-      flname=paste0("./Results_Uncontaminated/",flnameEst,"_",
-                                  "nrep=",scenarios_boxplot$nrep[i],"_",
-                                  "n=",scenarios_boxplot$n[i],"_",
-                                  "k=",scenarios_boxplot$k[i],"_",
-                                  "pe=",scenarios_boxplot$pe[i],"_",
-                                  "pb=",scenarios_boxplot$pb[i],"_",
-                                  "px=",scenarios_boxplot$px[i],"_",
-                                  "mec=",scenarios_boxplot$mec[i],"_",
-                                  "mbc2=",scenarios_boxplot$mbc2[i],"_",
-                                  "alphac=",scenarios_boxplot$alphac[i],"_",
-                                  "rc=",scenarios_boxplot$rc[i],".RData")}
-  
-  if (scenarios_boxplot$pe[i]>0){
-     flname=paste0("./Results_Epsilon_contamination/",flnameEst,"_",
+    flname=paste0("./Results_Uncontaminated/",flnameEst,"_",
                   "nrep=",scenarios_boxplot$nrep[i],"_",
                   "n=",scenarios_boxplot$n[i],"_",
                   "k=",scenarios_boxplot$k[i],"_",
@@ -114,7 +99,20 @@ for (i in 1:nrow(scenarios_boxplot)){
                   "mbc2=",scenarios_boxplot$mbc2[i],"_",
                   "alphac=",scenarios_boxplot$alphac[i],"_",
                   "rc=",scenarios_boxplot$rc[i],".RData")}
-
+  
+  if (scenarios_boxplot$pe[i]>0){
+    flname=paste0("./Results_Epsilon_contamination/",flnameEst,"_",
+                  "nrep=",scenarios_boxplot$nrep[i],"_",
+                  "n=",scenarios_boxplot$n[i],"_",
+                  "k=",scenarios_boxplot$k[i],"_",
+                  "pe=",scenarios_boxplot$pe[i],"_",
+                  "pb=",scenarios_boxplot$pb[i],"_",
+                  "px=",scenarios_boxplot$px[i],"_",
+                  "mec=",scenarios_boxplot$mec[i],"_",
+                  "mbc2=",scenarios_boxplot$mbc2[i],"_",
+                  "alphac=",scenarios_boxplot$alphac[i],"_",
+                  "rc=",scenarios_boxplot$rc[i],".RData")}
+  
   if (scenarios_boxplot$pb[i]>0){
     flname=paste0("./Results_Random_Effect_contamination/",flnameEst,"_",
                   "nrep=",scenarios_boxplot$nrep[i],"_",
@@ -128,38 +126,20 @@ for (i in 1:nrow(scenarios_boxplot)){
                   "alphac=",scenarios_boxplot$alphac[i],"_",
                   "rc=",scenarios_boxplot$rc[i],".RData")}
   
-
   if (scenarios_boxplot$px[i]>0){
-    if(scenarios_boxplot$Xa[i]==0){flname=paste0("./Results_X_contamination/",flnameEst,"_",
-                                      "nrep=",nrep,"_",
-                                      "n=",nsample,"_",
-                                      "k=",ksample,"_",
-                                      "pe=",pesample,"_",
-                                      "pb=",pbsample,"_",
-                                      "px=",pxsample,"_",
-                                      "mec=",mecsample,"_",
-                                      "mbc2=",mbc2sample,"_",
-                                      "alphac=",alphacsample,"_",
-                                      "rc=",rcsample,
-                                      ".RData")}else
-                                      {
-                                        flname=paste0("./Results_X_contamination/",flnameEst,"_",
-                                                      "nrep=",nrep,"_",
-                                                      "n=",nsample,"_",
-                                                      "k=",ksample,"_",
-                                                      "pe=",pesample,"_",
-                                                      "pb=",pbsample,"_",
-                                                      "px=",pxsample,"_",
-                                                      "mec=",mecsample,"_",
-                                                      "mbc2=",mbc2sample,"_",
-                                                      "mux=",muxsample,"_",
-                                                      "rc=",rcsample,
-                                                      ".RData") 
-                                        
-                                      }}
+    flname=paste0("./Results_X_contamination/",flnameEst,"_",
+                  "nrep=",scenarios_boxplot$nrep[i],"_",
+                  "n=",scenarios_boxplot$n[i],"_",
+                  "k=",scenarios_boxplot$k[i],"_",
+                  "pe=",scenarios_boxplot$pe[i],"_",
+                  "pb=",scenarios_boxplot$pb[i],"_",
+                  "px=",scenarios_boxplot$px[i],"_",
+                  "mec=",scenarios_boxplot$mec[i],"_",
+                  "mbc2=",scenarios_boxplot$mbc2[i],"_",
+                  "alphac=",scenarios_boxplot$alphac[i],"_",
+                  "rc=",scenarios_boxplot$rc[i],".RData")}
   
-  
-    load(flname)
+  load(flname)
   
   # combining the extracted information for boxplots 
   # for estimators for beta in a dataframe
@@ -179,33 +159,33 @@ for (i in 1:nrow(scenarios_boxplot)){
                       rep(scenarios_boxplot[[pname]][i],times=nrep),
                       MLESMMTAUCOMPSTAUind$MM$beta)
   
-  boxplotTaubeta=cbind(rep(3,times=nrep),
-                      rep(scenarios_boxplot[[pname]][i],times=nrep),
-                      MLESMMTAUCOMPSTAUind$Tau$beta)
+  boxplotTaubeta=cbind(rep(4,times=nrep),
+                       rep(scenarios_boxplot[[pname]][i],times=nrep),
+                       MLESMMTAUCOMPSTAUind$Tau$beta)
   
-  if (cTAUindsample==TRUE){
-  # dataframe for cTAU beta
-  boxplotcTAUbeta=cbind(rep(4,times=nrep),
-                      rep(scenarios_boxplot[[pname]][i],times=nrep),
-                      MLESMMTAUCOMPSTAUind$COMPTau$beta)
-  boxplotcSbeta=cbind(rep(4,times=nrep),
+  if (COMPindsample==TRUE){
+    # dataframe for cTAU beta
+    boxplotcTAUbeta=cbind(rep(6,times=nrep),
+                          rep(scenarios_boxplot[[pname]][i],times=nrep),
+                          MLESMMTAUCOMPSTAUind$COMPTau$beta)
+    boxplotcSbeta=cbind(rep(5,times=nrep),
                         rep(scenarios_boxplot[[pname]][i],times=nrep),
                         MLESMMTAUCOMPSTAUind$COMPS$beta)
-    }
+  }
   
   if (Sclaudiosample==TRUE){
-    boxplotSclaudiobeta=cbind(rep(5,times=nrep),rep(scenarios_boxplot[[pname]][i],times=nrep),
-                                  MLESMMTAUCOMPSTAUind$Sclaudio$beta)}
+    boxplotSclaudiobeta=cbind(rep(7,times=nrep),rep(scenarios_boxplot[[pname]][i],times=nrep),
+                              MLESMMTAUCOMPSTAUind$Sclaudio$beta)}
   
   # Combining all dataframes for beta in one.
   # This dataframe can be uses as input for 
   # classical boxplots or ggplot2
   boxplotBETA=rbind(boxplotBETA,
-                          boxplotMLEbeta,
-                          boxplotSbeta,
-                          boxplotMMbeta,
-                          boxplotTaubeta)
-
+                    boxplotMLEbeta,
+                    boxplotSbeta,
+                    boxplotMMbeta,
+                    boxplotTaubeta)
+  
   if (COMPindsample==TRUE){ boxplotBETA=rbind(boxplotBETA,boxplotcTAUbeta,boxplotcSbeta)}   
   if (Sclaudiosample==TRUE){ boxplotBETA=rbind(boxplotBETA,boxplotcTAUSclaudiobeta)}
   # dataframe for MLE theta
@@ -216,85 +196,87 @@ for (i in 1:nrow(scenarios_boxplot)){
   boxplotStheta=cbind(rep(2,times=nrep),
                       rep(scenarios_boxplot[[pname]][i],times=nrep),
                       MLESMMTAUCOMPSTAUind$S$theta)
-  boxplotTautheta=cbind(rep(2,times=nrep),
-                      rep(scenarios_boxplot[[pname]][i],times=nrep),
-                      MLESMMTAUCOMPSTAUind$Tau$theta)
+  boxplotTautheta=cbind(rep(4,times=nrep),
+                        rep(scenarios_boxplot[[pname]][i],times=nrep),
+                        MLESMMTAUCOMPSTAUind$Tau$theta)
   
   if (COMPindsample==TRUE){
-  # dataframe for cTAU theta
-  boxplotcTAUtheta=cbind(rep(4,times=nrep),
-                      rep(scenarios_boxplot[[pname]][i],times=nrep),
-                      MLESMMTAUCOMPSTAUind$COMPTau$theta)
-  boxplotcStheta=cbind(rep(4,times=nrep),
+    # dataframe for cTAU theta
+    boxplotcTAUtheta=cbind(rep(6,times=nrep),
+                           rep(scenarios_boxplot[[pname]][i],times=nrep),
+                           MLESMMTAUCOMPSTAUind$COMPTau$theta)
+    boxplotcStheta=cbind(rep(5,times=nrep),
                          rep(scenarios_boxplot[[pname]][i],times=nrep),
-                       MLESMMTAUCOMPSTAUind$COMPS$theta)}
+                         MLESMMTAUCOMPSTAUind$COMPS$theta)}
   if (Sclaudiosample==TRUE){
-                        boxplotSclaudiotheta=cbind(rep(5,times=nrep),
-                                               rep(scenarios_boxplot[[pname]][i],times=nrep),
-                                               MLESMMTAUCOMPSTAUind$Sclaudio$theta)
-                      }
-
-
+    boxplotSclaudiotheta=cbind(rep(7,times=nrep),
+                               rep(scenarios_boxplot[[pname]][i],times=nrep),
+                               MLESMMTAUCOMPSTAUind$Sclaudio$theta)
+  }
+  
+  
   # Combining all dataframes for theta in one.
   # This dataframe can be uses as input for 
   # classical boxplots or ggplot2
   boxplotTHETA=rbind(boxplotTHETA,
-                           boxplotMLEtheta,
-                           boxplotStheta,
-                           boxplotTautheta)
- 
+                     boxplotMLEtheta,
+                     boxplotStheta,
+                     boxplotTautheta)
+  
   if (COMPindsample==TRUE){
     boxplotTHETA=rbind(boxplotTHETA,boxplotcTAUtheta,boxplotcStheta)}
-if (Sclaudiosample==TRUE){
-  boxplotTHETA=rbind(boxplotTHETA,boxplotSclaudiotheta)
-}
+  if (Sclaudiosample==TRUE){
+    boxplotTHETA=rbind(boxplotTHETA,boxplotSclaudiotheta)
+  }
   
   # dataframe for number of outliers in i-th scenario
   boxplotOUTLIER_tmp=cbind(rep(scenarios_boxplot$n,nrep),
-                                  rep(scenarios_boxplot[[pname]][i],times=nrep),
-                                  MLESMMTAUCOMPSTAUind$no_outliers)
+                           rep(scenarios_boxplot[[pname]][i],times=nrep),
+                           MLESMMTAUCOMPSTAUind$no_outliers)
   
   # Combining with dataframes of previous scenarios
   boxplotOUTLIER=rbind(boxplotOUTLIER,
-                              boxplotOUTLIER_tmp)
+                       boxplotOUTLIER_tmp)
 } # END of scenarios loop
 
 ###################################################################
 # Setting the first two of boxplotBETA columns to factors
 
+# Setting the first two of boxplotBETA columns to factors
+
 colnames(boxplotBETA)=c("Estimator",pname,"beta1","beta2")
 boxplotBETA=data.frame(boxplotBETA)
-if (cTAUind==TRUE){
+if (COMPind==TRUE){
   if (Sclaudio==TRUE){
-  levBETA=1:5
-  labBETA=c("MLE","S","MM","Tau","COMPS","COMPTau","Sclaudio")}else{
-    levBETA=1:4
-    labBETA=c("MLE","S","MM","Tau","COMPS","COMPTau") 
-  }
+    levBETA=1:7
+    labBETA=c("MLE","S","MM","Tau","COMPS","COMPTau","Sclaudio")}else{
+      levBETA=1:6
+      labBETA=c("MLE","S","MM","Tau","COMPS","COMPTau") 
+    }
 }else{
-  levBETA=1:3
+  levBETA=1:4
   labBETA=c("MLE","S","MM","Tau")
-  }
+}
 boxplotBETA[,1]=factor(boxplotBETA[,1],
-                      levels=levBETA,
-                      labels=labBETA)
+                       levels=levBETA,
+                       labels=labBETA)
 boxplotBETA[,2]=factor(boxplotBETA[,2],levels=levelsvec,
-                             labels = as.character(levelsvec*100))
+                       labels = as.character(levelsvec*100))
 
 # Setting the first two of boxplotTHETA columns to factors
 colnames(boxplotTHETA)=c("Estimator",pname,
-                               "theta1","theta2","theta3","theta4")
+                         "theta1","theta2","theta3","theta4")
 boxplotTHETA=data.frame(boxplotTHETA)
 if (COMPind==TRUE){
   if (Sclaudio==TRUE){
-    levTHETA=c(1,2,4,5)
+    levTHETA=c(1,2,4,5,6,7)
     labTHETA=c("MLE","S","Tau","COMPS","COMPTau","Sclaudio")}else{
-  levTHETA=c(1,2,4)
-  labTHETA=c("MLE","S","Tau","COMPS","COMPTau")
-}}else{
-  levTHETA=1:2
-  labTHETA=c("MLE","S","Tau")
-}
+      levTHETA=c(1,2,4,5,6)
+      labTHETA=c("MLE","S","Tau","COMPS","COMPTau")
+    }}else{
+      levTHETA=c(1,2,4)
+      labTHETA=c("MLE","S","Tau")
+    }
 boxplotTHETA[,1]=factor(boxplotTHETA[,1],
                               levels=levTHETA,
                         labels=labTHETA)
