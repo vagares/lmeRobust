@@ -28,8 +28,8 @@ alphacvec=c(2,5,10,50)      # size of contamination-factor in X
 muxvec=c(0.5,1,5,10)
 k=4       # dimension of y
 #k=8
-n=250     # sample size
-nrep=100  # number of repetitions
+n=200     # sample size
+nrep=250 # number of repetitions
 
 scenarios=NULL
 for (cs in 1:4){
