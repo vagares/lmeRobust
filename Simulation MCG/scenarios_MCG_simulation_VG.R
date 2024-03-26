@@ -15,7 +15,7 @@
 # COMP included yes (COMP==TRUE) or no (COMP==FALSE)
 
 COMPind=TRUE
-Sclaudio = FALSE
+Sclaudio = TRUE
 #######################################################################
 # creating dataframe containing different contamination schemes as rows
 
@@ -28,7 +28,7 @@ alphacvec=c(2,5,10,50)      # size of contamination-factor in X
 muxvec=c(0.5,1,5,10)
 k=4       # dimension of y
 #k=8
-n=200     # sample size
+n=250     # sample size
 nrep=100  # number of repetitions
 
 scenarios=NULL
