@@ -15,7 +15,7 @@
 # COMP included yes (COMP==TRUE) or no (COMP==FALSE)
 
 COMPind=TRUE
-Sclaudio = FALSE
+Sclaudio = TRUE
 #######################################################################
 # creating dataframe containing different contamination schemes as rows
 

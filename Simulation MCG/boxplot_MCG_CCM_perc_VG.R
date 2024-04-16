@@ -8,10 +8,10 @@
 
 source("scenarios_MCG_simulation_VG.R")
 
-scenarios_boxplot=scenarios[(scenarios$mec==-160)&(scenarios$CCMind==1),]
+#scenarios_boxplot=scenarios[(scenarios$mec==-160)&(scenarios$CCMind==1),]
 #scenarios_boxplot=scenarios[(scenarios$mbc2==-50)&(scenarios$CCMind==1),]
-#scenarios_boxplot=scenarios[(scenarios$alphac==10)&(scenarios$CCMind==1),]
-#scenarios_boxplot=scenarios[(scenarios$mux==0.5)&(scenarios$CCMind==1),]
+#scenarios_boxplot=scenarios[(scenarios$alphac==50)&(scenarios$CCMind==1),]
+scenarios_boxplot=scenarios[(scenarios$mux==0.5)&(scenarios$CCMind==1),]
 #scenarios_boxplot=scenarios[(scenarios$mec==0)&(scenarios$CCMind==1),]
 
 if (max(scenarios_boxplot$pe)!=0){
@@ -126,7 +126,7 @@ for (i in 1:nrow(scenarios_boxplot)){
                   "alphac=",scenarios_boxplot$alphac[i],"_",
                   "rc=",scenarios_boxplot$rc[i],".RData")}
   
-  if (scenarios_boxplot$px[i]>0){
+  if (scenarios_boxplot$px[i]>0 &  scenarios_boxplot$mux[i] == 0){
     flname=paste0("./Results_X_contamination/",flnameEst,"_",
                   "nrep=",scenarios_boxplot$nrep[i],"_",
                   "n=",scenarios_boxplot$n[i],"_",
@@ -137,6 +137,19 @@ for (i in 1:nrow(scenarios_boxplot)){
                   "mec=",scenarios_boxplot$mec[i],"_",
                   "mbc2=",scenarios_boxplot$mbc2[i],"_",
                   "alphac=",scenarios_boxplot$alphac[i],"_",
+                  "rc=",scenarios_boxplot$rc[i],".RData")}
+  
+  if (scenarios_boxplot$px[i]>0 & scenarios_boxplot$alphac[i] == 0){
+    flname=paste0("./Results_X_contamination/",flnameEst,"_",
+                  "nrep=",scenarios_boxplot$nrep[i],"_",
+                  "n=",scenarios_boxplot$n[i],"_",
+                  "k=",scenarios_boxplot$k[i],"_",
+                  "pe=",scenarios_boxplot$pe[i],"_",
+                  "pb=",scenarios_boxplot$pb[i],"_",
+                  "px=",scenarios_boxplot$px[i],"_",
+                  "mec=",scenarios_boxplot$mec[i],"_",
+                  "mbc2=",scenarios_boxplot$mbc2[i],"_",
+                  "mux=",scenarios_boxplot$mux[i],"_",
                   "rc=",scenarios_boxplot$rc[i],".RData")}
   
   load(flname)
