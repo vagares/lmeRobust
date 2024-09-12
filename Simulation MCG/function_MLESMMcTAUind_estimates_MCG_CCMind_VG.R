@@ -156,6 +156,8 @@ for (m in 1:nrep){
                            w=w,dis=dis,iterS=iterS,iterM=iterM)})
 
   # varComprob for TAU
+  y=vec(t(dat$Y))
+  Dataset=data.frame(y,time,groups)
   summaryTau=tryCatch(
     expr  = {est0 =varComprob(y ~ 1 +  time, groups = groups, data = Dataset, varcov = K, control = varComprob.control(lower = c(0, 0, -Inf),method = "Tau", psi = "bisquare")) }, error  =  function(cond) {
       beta = rep(NA,lbeta)

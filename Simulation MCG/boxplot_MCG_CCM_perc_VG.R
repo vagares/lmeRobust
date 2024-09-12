@@ -8,10 +8,10 @@
 
 source("scenarios_MCG_simulation_VG.R")
 
-#scenarios_boxplot=scenarios[(scenarios$mec==-160)&(scenarios$CCMind==1),]
-#scenarios_boxplot=scenarios[(scenarios$mbc2==-50)&(scenarios$CCMind==1),]
-#scenarios_boxplot=scenarios[(scenarios$alphac==50)&(scenarios$CCMind==1),]
-scenarios_boxplot=scenarios[(scenarios$mux==0.5)&(scenarios$CCMind==1),]
+#scenarios_boxplot=scenarios[(scenarios$mec==-80)&(scenarios$CCMind==1),]
+scenarios_boxplot=scenarios[(scenarios$mbc2==-25)&(scenarios$CCMind==1),]
+#scenarios_boxplot=scenarios[(scenarios$alphac==5)&(scenarios$CCMind==1),]
+#scenarios_boxplot=scenarios[(scenarios$mux==10)&(scenarios$CCMind==1),]
 #scenarios_boxplot=scenarios[(scenarios$mec==0)&(scenarios$CCMind==1),]
 
 if (max(scenarios_boxplot$pe)!=0){
@@ -126,7 +126,7 @@ for (i in 1:nrow(scenarios_boxplot)){
                   "alphac=",scenarios_boxplot$alphac[i],"_",
                   "rc=",scenarios_boxplot$rc[i],".RData")}
   
-  if (scenarios_boxplot$px[i]>0 &  scenarios_boxplot$mux[i] == 0){
+  if (scenarios_boxplot$px[i]>0 &  scenarios_boxplot$Xa[i] == 0){
     flname=paste0("./Results_X_contamination/",flnameEst,"_",
                   "nrep=",scenarios_boxplot$nrep[i],"_",
                   "n=",scenarios_boxplot$n[i],"_",
@@ -139,7 +139,7 @@ for (i in 1:nrow(scenarios_boxplot)){
                   "alphac=",scenarios_boxplot$alphac[i],"_",
                   "rc=",scenarios_boxplot$rc[i],".RData")}
   
-  if (scenarios_boxplot$px[i]>0 & scenarios_boxplot$alphac[i] == 0){
+  if (scenarios_boxplot$px[i]>0 & scenarios_boxplot$Xa[i] == 1){
     flname=paste0("./Results_X_contamination/",flnameEst,"_",
                   "nrep=",scenarios_boxplot$nrep[i],"_",
                   "n=",scenarios_boxplot$n[i],"_",
@@ -319,18 +319,19 @@ titlename=paste0("CCM: rc=",unique(scenarios_boxplot[,10]),
 plotbeta1=ggplot(boxplotBETA,aes(x=get(pname),y=beta1,fill=Estimator))+
   geom_boxplot()+
   xlab("Fixed % of contaminated cases")+
-  ylab(quote(beta[1]))+
-  geom_hline(yintercept=250,lty=1,col="orange")+
-  ggtitle(titlename)
+  ylab(quote(hat(beta)[1]))+
+  geom_hline(yintercept=250,lty=1,col="orange")#+
+  #ggtitle(titlename)
 
 plotbeta2=ggplot(boxplotBETA,aes(x=get(pname),y=beta2,fill=Estimator))+
   geom_boxplot()+
   xlab("Fixed % of contaminated cases")+
-  ylab(quote(beta[2]))+
-  geom_hline(yintercept=10,lty=1,col="orange")+
-  ggtitle(titlename)
+  ylab(quote(hat(beta)[2]))+
+  geom_hline(yintercept=10,lty=1,col="orange")#+
+  #ggtitle(titlename)
 
-grid.arrange(plotbeta1,plotbeta2,nrow=1)
+ggarrange(plotbeta1,plotbeta2,nrow=1,common.legend = TRUE, legend = "bottom")
+
 
 #pdf("tmp.pdf")
 #print(plotbeta1)
@@ -343,33 +344,33 @@ grid.arrange(plotbeta1,plotbeta2,nrow=1)
 plottheta1=ggplot(boxplotTHETA,aes(x=get(pname),y=theta1,fill=Estimator))+
   geom_boxplot()+
   xlab("Fixed % of contaminated cases")+
-  ylab(quote(sigma[gamma[1]]^2))+
-  geom_hline(yintercept=790,lty=1,col="orange")+
-  ggtitle(titlename)
+  ylab(quote(hat(sigma)[gamma[1]]^2))+
+  geom_hline(yintercept=790,lty=1,col="orange")#+
+  #ggtitle(titlename)
 
 plottheta2=ggplot(boxplotTHETA,aes(x=get(pname),y=theta2,fill=Estimator))+
   geom_boxplot()+
   xlab("Fixed % of contaminated cases")+
-  ylab(quote(sigma[gamma[12]]))+
-  geom_hline(yintercept=-8.5,lty=1,col="orange")+
-  ggtitle(titlename)
+  ylab(quote(hat(sigma)[gamma[12]]))+
+  geom_hline(yintercept=-8.5,lty=1,col="orange")#+
+  #ggtitle(titlename)
 
 plottheta3=ggplot(boxplotTHETA,aes(x=get(pname),y=theta3,fill=Estimator))+
   geom_boxplot()+
-  ylab(quote(sigma[gamma[2]]^2))+
+  ylab(quote(hat(sigma)[gamma[2]]^2))+
   xlab("Fixed % of contaminated cases")+
-  geom_hline(yintercept=40,lty=1,col="orange")+
-  ggtitle(titlename)
+  geom_hline(yintercept=40,lty=1,col="orange")#+
+  #ggtitle(titlename)
 
 plottheta4=ggplot(boxplotTHETA,aes(x=get(pname),y=theta4,fill=Estimator))+
   geom_boxplot()+
-  ylab(quote(sigma[epsilon]^2))+
+  ylab(quote(hat(sigma)[epsilon]^2))+
   xlab("Fixed % of contaminated cases")+
-  geom_hline(yintercept=400,lty=1,col="orange")+
-  ggtitle(titlename)
+  geom_hline(yintercept=400,lty=1,col="orange")#+
+  #ggtitle(titlename)
 
-grid.arrange(plottheta1,plottheta2,plottheta3,plottheta4,
-             nrow=2,ncol=2)
+ggarrange(plottheta1,plottheta2,plottheta3,plottheta4,nrow=2,ncol=2,common.legend = TRUE, legend = "bottom")
+
 
 #grid.arrange(plotbeta1,plottheta1,plottheta2,plotbeta2,plottheta3,plottheta4,nrow=2,ncol=3)
 
