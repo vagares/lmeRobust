@@ -53,7 +53,7 @@ asympvarthetaS=list()
 asympvarthetaMM=list()
 asympvarthetaTau=list()
 
-if (COMPind==TRUE){
+#if (COMPind==TRUE){
   # Data preparation for varComprob
   n_suj=n #nb of cases
   n_mes=k #nb maximum number of measurements per case
@@ -73,7 +73,7 @@ if (COMPind==TRUE){
   K[[3]] <- tcrossprod(z1,z2) + tcrossprod(z2,z1) # Matrix of interaction Intercept by time variable
   names(K) = c("sigma2_Intercept", "sigma2_Time", "Covariance")
   K <<- K  # This is Z%*%t(Z)
-  
+if (COMPind==TRUE){  
   betahatmatCOMPS=matrix(0,nrow=nrep,ncol=lbeta)
   thetahatmatCOMPS=matrix(0,nrow=nrep,ncol=ltheta)
   asympvarbetaCOMPS=list()
@@ -156,6 +156,7 @@ for (m in 1:nrep){
                            w=w,dis=dis,iterS=iterS,iterM=iterM)})
 
   # varComprob for TAU
+
   y=vec(t(dat$Y))
   Dataset=data.frame(y,time,groups)
   summaryTau=tryCatch(
@@ -165,7 +166,7 @@ for (m in 1:nrep){
       vcov.beta = matrix(rep(NA,lbeta*lbeta),lbeta,lbeta)
       eta0 = NA
       list(beta=beta,eta=eta,vcov.beta=vcov.beta,eta0=eta0)})
-  
+
 
   betahatmatMLE[m,]=summaryMLE$fixedeffectsS[,1]
   betahatmatS[m,]=summaryS$fixedeffectsS[,1]

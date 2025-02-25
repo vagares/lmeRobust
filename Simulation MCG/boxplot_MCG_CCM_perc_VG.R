@@ -17,7 +17,6 @@ scenarios_boxplot=scenarios[(scenarios$mbc2==-25)&(scenarios$CCMind==1),]
 if (max(scenarios_boxplot$pe)!=0){
   scenarios_boxplot = scenarios_boxplot[scenarios_boxplot$pb==0,]
   scenarios_boxplot = scenarios_boxplot[scenarios_boxplot$px==0,]
-  
   pname="pe";
   noname="noe";
   noiname="noei";
