@@ -38,7 +38,7 @@ Roblme = function(Ymat,X,Z,E=NULL,L=NULL,rho ="t-biweight",r =0.5,arp=0.01,rhoMM
   # Setting BDP and cut-off constant for translated biweight
   # and setting sigma1 and sigma2 in limiting variance of thetahat
   if (rho =="t-biweight"){
-    c0 = rhotranslatedconst(k,r,arp,0.01,10)
+    c0 = rhotranslatedconst(k,r,arp,0.0001,1000)
     m0 = sqrt(qchisq(1-arp,df=k))-c0
     b0 = expecrhotranslated(k,m0,c0)
     s1 = sigma1t(k,m0,c0)
@@ -46,14 +46,14 @@ Roblme = function(Ymat,X,Z,E=NULL,L=NULL,rho ="t-biweight",r =0.5,arp=0.01,rhoMM
     }
   if (rho =="biweight"){
     m0 = 0
-    c0 = rhoconst(k,r,0.01,100)
+    c0 = rhoconst(k,r,0.0001,10000)
     b0 = expecrho(k,c0)
     s1 = sigma1(k,c0)
     s2 = sigma2(k,c0)
     }
   if (rho =="MLE"){
     m0 = 10000
-    c0 = rhotranslatedconst(k,r,arp,0.01,10)
+    c0 = rhotranslatedconst(k,r,arp,0.0001,1000)
     b0 = expecrhotranslated(k,m0,c0)
     s1 = sigma1t(k,m0,c0)
     s2 = sigma2t(k,m0,c0)  

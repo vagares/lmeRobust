@@ -19,14 +19,20 @@ cTAUind=TRUE
 #######################################################################
 # creating dataframe containing different contamination schemes as rows
 
-pevec=c(0,0.05,0.10,0.20,0.30)  # proportion of contamination in error
-pbvec=c(0,0.05,0.10,0.20,0.30)  # proportion of contamination in random effect
-pxvec=c(0,0.05,0.10,0.20,0.30)  # proportion of contamination in X-matrix
-mecvec=c(-40,-80,-160,-500,-800)          # size of contamination-shift in error
-mbc2vec=c(-12.5,-25,-50)        # size of contamination-shift in random effect
-alphacvec=c(2,5,10,50,100)             # size of contamination-factor in X
+#pevec=c(0,0.05,0.10,0.20,0.30)  # proportion of contamination in error
+#pbvec=c(0,0.05,0.10,0.20,0.30)  # proportion of contamination in random effect
+#pxvec=c(0,0.05,0.10,0.20,0.30)  # proportion of contamination in X-matrix
+#mecvec=c(-40,-80,-160,-500,-800)          # size of contamination-shift in error
+#mbc2vec=c(-12.5,-25,-50)        # size of contamination-shift in random effect
+#alphacvec=c(2,5,10,50,100)             # size of contamination-factor in X
+pevec=c(0,0.10)  # proportion of contamination in error
+pbvec=c(0,0.10)  # proportion of contamination in random effect
+pxvec=c(0,0.10)  # proportion of contamination in X-matrix
+mecvec=c(-40,-160)          # size of contamination-shift in error
+mbc2vec=c(-12.5,-25)        # size of contamination-shift in random effect
+alphacvec=c(2,10)             # size of contamination-factor in X
 
-k=4       # dimension of y
+k=2      # dimension of y
 #k=8
 n=200     # sample size
 nrep=50    # number of repetitions

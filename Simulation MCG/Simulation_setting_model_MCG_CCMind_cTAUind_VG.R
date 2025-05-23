@@ -63,18 +63,19 @@ for (i in (1:nrow(scenarios))){
   nrep=scenarios[i,1]
   nsample=scenarios[i,2]
   ksample=scenarios[i,3]
-  pesample=scenarios[i,4]
-  pbsample=scenarios[i,5]
-  pxsample=scenarios[i,6]
-  mecsample=scenarios[i,7]
-  mbc2sample=scenarios[i,8]
-  alphacsample=scenarios[i,9]
-  rcsample=scenarios[i,10]
-  COMPindsample=as.logical(scenarios[i,11])
-  CCMindsample=as.logical(scenarios[i,12])
-  Xasample=as.logical(scenarios[i,13])
-  muxsample=scenarios[i,14]
-  Sclaudiosample=as.logical(scenarios[i,15])
+  r0sample=scenarios[i,4]
+  pesample=scenarios[i,5]
+  pbsample=scenarios[i,6]
+  pxsample=scenarios[i,7]
+  mecsample=scenarios[i,8]
+  mbc2sample=scenarios[i,9]
+  alphacsample=scenarios[i,10]
+  rcsample=scenarios[i,11]
+  COMPindsample=as.logical(scenarios[i,12])
+  CCMindsample=as.logical(scenarios[i,13])
+  Xasample=as.logical(scenarios[i,14])
+  muxsample=scenarios[i,15]
+  Sclaudiosample=as.logical(scenarios[i,16])
   
   # Setting the filename depending on yes/no COMP and yes/no CCM
   if (COMPindsample==FALSE){
@@ -91,7 +92,7 @@ for (i in (1:nrow(scenarios))){
       if(Xasample==TRUE){flnameEst="MLESMMTAUCOMPSTAUSclaudio_CCM_Xa"}else{flnameEst="MLESMMTAUCOMPSTAUSclaudio_CCM_Xf"}}
   }   }
   
-  MLESMMTAUCOMPSTAUind=MLESMMTAUCOMPSTAUind_estimates_MCG_CCMind(nrep=nrep,n=nsample,k=ksample,
+  MLESMMTAUCOMPSTAUind=MLESMMTAUCOMPSTAUind_estimates_MCG_CCMind(nrep=nrep,n=nsample,k=ksample,r=r0sample,
                                       pe=pesample,pb=pbsample,px=pxsample,
                                       mec=mecsample,mbc2=mbc2sample,
                                       alphac=alphacsample,
@@ -109,6 +110,7 @@ for (i in (1:nrow(scenarios))){
                     "nrep=",nrep,"_",
                     "n=",nsample,"_",
                     "k=",ksample,"_",
+                    "r=",r0sample,"_",
                     "pe=",pesample,"_",
                     "pb=",pbsample,"_",
                     "px=",pxsample,"_",
@@ -123,6 +125,7 @@ for (i in (1:nrow(scenarios))){
                   "nrep=",nrep,"_",
                   "n=",nsample,"_",
                   "k=",ksample,"_",
+                  "r=",r0sample,"_",
                   "pe=",pesample,"_",
                   "pb=",pbsample,"_",
                   "px=",pxsample,"_",
@@ -137,6 +140,7 @@ for (i in (1:nrow(scenarios))){
                   "nrep=",nrep,"_",
                   "n=",nsample,"_",
                   "k=",ksample,"_",
+                  "r=",r0sample,"_",
                   "pe=",pesample,"_",
                   "pb=",pbsample,"_",
                   "px=",pxsample,"_",
@@ -151,6 +155,7 @@ for (i in (1:nrow(scenarios))){
                   "nrep=",nrep,"_",
                   "n=",nsample,"_",
                   "k=",ksample,"_",
+                  "r=",r0sample,"_",
                   "pe=",pesample,"_",
                   "pb=",pbsample,"_",
                   "px=",pxsample,"_",
@@ -164,6 +169,7 @@ for (i in (1:nrow(scenarios))){
                                   "nrep=",nrep,"_",
                                   "n=",nsample,"_",
                                   "k=",ksample,"_",
+                                  "r=",r0sample,"_",
                                   "pe=",pesample,"_",
                                   "pb=",pbsample,"_",
                                   "px=",pxsample,"_",

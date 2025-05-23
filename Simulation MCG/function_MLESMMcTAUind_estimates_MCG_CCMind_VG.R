@@ -25,7 +25,7 @@ library(robustbase)     # needed for covMcd in function Robust_lme
 library(robustvarComp)  # needed for varComprob
 
 
-MLESMMTAUCOMPSTAUind_estimates_MCG_CCMind=function(nrep=1,n=200,k=4,pe=0,pb=0,px=0,
+MLESMMTAUCOMPSTAUind_estimates_MCG_CCMind=function(nrep=1,n=200,k=4,r0=0.5,pe=0,pb=0,px=0,
                                   mec=0,mbc2=0,alphac=1,
                                   randcont=0,COMPind=FALSE,CCMind=FALSE,
                                   Xa=FALSE,mux=0,Sclaudioind=FALSE){
@@ -104,7 +104,7 @@ for (m in 1:nrep){
   # Roblme for MLE
   summaryMLE = tryCatch(
     expr  = {est0 =Roblme(dat$Y,dat$X,dat$Z,E=NULL,L=dat$L,
-                         rho="MLE",rhoMM=NULL,eps=1e-5,maxiter=100,eff=0.95,V0=NULL)}, error  =  function(cond) {
+                         rho="MLE",r =r0,rhoMM=NULL,eps=1e-5,maxiter=100,eff=0.95,V0=NULL)}, error  =  function(cond) {
                            fixedeffectsS = matrix(rep(NA,lbeta*4),lbeta,4)
                            fixedeffectsMM = matrix(rep(NA,lbeta*4),lbeta,4)
                            summarythetaS = matrix(rep(NA,ltheta*ltheta),ltheta,ltheta)
@@ -122,7 +122,7 @@ for (m in 1:nrep){
   # Roblme for S
   summaryS = tryCatch(
     expr  = {est0 =Roblme(dat$Y,dat$X,dat$Z,E=NULL,L=dat$L,
-                   rho="biweight",rhoMM=NULL,eps=1e-5,maxiter=100,eff=0.95,V0=NULL)}, error  =  function(cond) {
+                   rho="biweight",r =r0,rhoMM=NULL,eps=1e-5,maxiter=100,eff=0.95,V0=NULL)}, error  =  function(cond) {
                      fixedeffectsS = matrix(rep(NA,lbeta*4),lbeta,4)
                      fixedeffectsMM = matrix(rep(NA,lbeta*4),lbeta,4)
                      summarythetaS = matrix(rep(NA,ltheta*ltheta),ltheta,ltheta)
@@ -140,7 +140,7 @@ for (m in 1:nrep){
   # Roblme for MM
   summaryMM = tryCatch(
     expr  = {est0 =Roblme(dat$Y,dat$X,dat$Z,E=NULL,L=dat$L,
-                    rho="biweight",rhoMM="biweight",eps=1e-5,maxiter=100,eff=0.95,V0=NULL)}, error  =  function(cond) {
+                    rho="biweight",r =r0,rhoMM="biweight",eps=1e-5,maxiter=100,eff=0.95,V0=NULL)}, error  =  function(cond) {
                       fixedeffectsS = matrix(rep(NA,lbeta*4),lbeta,4)
                       fixedeffectsMM = matrix(rep(NA,lbeta*4),lbeta,4)
                       summarythetaS = matrix(rep(NA,ltheta*ltheta),ltheta,ltheta)

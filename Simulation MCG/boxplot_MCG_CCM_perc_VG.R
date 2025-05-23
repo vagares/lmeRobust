@@ -8,10 +8,10 @@
 
 source("scenarios_MCG_simulation_VG.R")
 
-#scenarios_boxplot=scenarios[(scenarios$mec==-80)&(scenarios$CCMind==1),]
-scenarios_boxplot=scenarios[(scenarios$mbc2==-25)&(scenarios$CCMind==1),]
+scenarios_boxplot=scenarios[(scenarios$mec==-80)&(scenarios$CCMind==1),]
+#scenarios_boxplot=scenarios[(scenarios$mbc2==-25)&(scenarios$CCMind==1),]
 #scenarios_boxplot=scenarios[(scenarios$alphac==5)&(scenarios$CCMind==1),]
-#scenarios_boxplot=scenarios[(scenarios$mux==10)&(scenarios$CCMind==1),]
+scenarios_boxplot=scenarios[(scenarios$mux==0.5)&(scenarios$CCMind==1),]
 #scenarios_boxplot=scenarios[(scenarios$mec==0)&(scenarios$CCMind==1),]
 
 if (max(scenarios_boxplot$pe)!=0){
@@ -308,7 +308,7 @@ boxplotOUTLIER[,2]=factor(boxplotOUTLIER[,2],levels=levelsvec,
 # Boxplots using ggplot2
 library(ggplot2)
 library(gridExtra)
-
+library(ggpubr)
 titlename=paste0("CCM: rc=",unique(scenarios_boxplot[,10]),
                  ", n=",unique(scenarios_boxplot[,2]),
                  ", k=",unique(scenarios_boxplot[,3]),

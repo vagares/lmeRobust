@@ -19,18 +19,25 @@ Sclaudio = FALSE
 #######################################################################
 # creating dataframe containing different contamination schemes as rows
 
-pevec=c(0,0.05,0.10,0.20,0.30)  # proportion of contamination in error
-pbvec=c(0,0.05,0.10,0.20,0.30)  # proportion of contamination in random effect
-pxvec=c(0,0.05,0.10,0.20,0.30)  # proportion of contamination in X-matrix
-mecvec=c(-40,-80,-160)     # size of contamination-shift in error
-mbc2vec=c(-12.5,-25,-50)        # size of contamination-shift in random effect
-alphacvec=c(2,5,10,50)      # size of contamination-factor in X
-muxvec=c(0.5,1,5,10)
-k=4       # dimension of y
+#pevec=c(0,0.05,0.10,0.20,0.30)  # proportion of contamination in error
+#pbvec=c(0,0.05,0.10,0.20,0.30)  # proportion of contamination in random effect
+#pxvec=c(0,0.05,0.10,0.20,0.30)  # proportion of contamination in X-matrix
+#mecvec=c(-40,-80,-160)     # size of contamination-shift in error
+#mbc2vec=c(-12.5,-25,-50)        # size of contamination-shift in random effect
+#alphacvec=c(2,5,10,50)      # size of contamination-factor in X
+#muxvec=c(0.5,1,5,10)
+pevec=c(0,0.10)  # proportion of contamination in error
+pbvec=c(0,0.10)  # proportion of contamination in random effect
+pxvec=c(0,0.10)  # proportion of contamination in X-matrix
+mecvec=c(-40,-160)          # size of contamination-shift in error
+mbc2vec=c(-12.5,-25)        # size of contamination-shift in random effect
+alphacvec=c(2,10)             # size of contamination-factor in X
+muxvec=c(1,5)
+k=2# dimension of y
 #k=8
 n=200     # sample size
 nrep=250 # number of repetitions
-
+r0=0.25
 scenarios=NULL
 for (cs in 4:4){
   # 3 different contamination scenarios 
@@ -47,7 +54,7 @@ for (cs in 4:4){
     # ONLY pevec varying
     for (i in 1:length(pevec)){
       for (j in 1:length(mecvec)){
-      scenarios=rbind(scenarios,c(nrep,n,k,pevec[i],0,0,mecvec[j],0,1,
+      scenarios=rbind(scenarios,c(nrep,n,k,r0,pevec[i],0,0,mecvec[j],0,1,
                       randcont,as.integer(COMPind),as.integer(CCMind),
                       as.integer(Xa),0,as.integer(Sclaudio)))
       } # END j-loop mecvec
@@ -57,7 +64,7 @@ for (cs in 4:4){
   if (max(pbvec)>0){
     for (i in 1:length(pbvec)){
       for (j in 1:length(mbc2vec)){
-        scenarios=rbind(scenarios,c(nrep,n,k,0,pbvec[i],0,0,mbc2vec[j],1,
+        scenarios=rbind(scenarios,c(nrep,n,k,r0,0,pbvec[i],0,0,mbc2vec[j],1,
                        randcont,as.integer(COMPind),as.integer(CCMind),
                        as.integer(Xa),0,as.integer(Sclaudio)))
       } # END j-loop mbc2vec
@@ -68,12 +75,12 @@ for (cs in 4:4){
   if (max(pxvec)>0){ 
    for (i in 1:length(pxvec)){if (Xa==FALSE)
       {for (j in 1:length(alphacvec)){
-        scenarios=rbind(scenarios,c(nrep,n,k,0,0,pxvec[i],0,0,alphacvec[j],
+        scenarios=rbind(scenarios,c(nrep,n,k,r0,0,0,pxvec[i],0,0,alphacvec[j],
                       randcont,as.integer(COMPind),as.integer(CCMind),
                       as.integer(Xa),0,as.integer(Sclaudio)))
       } # END j-loop alphacvec
      }else{for (j in 1:length(muxvec)){
-       scenarios=rbind(scenarios,c(nrep,n,k,0,0,pxvec[i],0,0,0,
+       scenarios=rbind(scenarios,c(nrep,n,k,r0,0,0,pxvec[i],0,0,0,
                                    randcont,as.integer(COMPind),as.integer(CCMind),
                                    as.integer(Xa),muxvec[j],as.integer(Sclaudio)))
      } # END j-loop alphacvec
@@ -82,7 +89,7 @@ for (cs in 4:4){
   }
 } # END cs-loop 
 
-colnames(scenarios)=c("nrep","n","k","pe","pb","px","mec","mbc2",
+colnames(scenarios)=c("nrep","n","k","r0","pe","pb","px","mec","mbc2",
                               "alphac","rc","COMPind","CCMind","Xa","mux","Sclaudio")
 
 scenarios=data.frame(scenarios)
